@@ -98,6 +98,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     logoutBtn.onclick = async () => {
       await supabase.auth.signOut();
       window.DOP.clearCurrentUser();
+      localStorage.removeItem('dop_user');
       window.location.href = window.DOP.withLang('Homepage.html', lang);
     };
   } catch (error) {
@@ -106,4 +107,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 </script>
   <script src="./site_footer_cookies.js"></script>
+  <script src="./session_nav.js"></script>
 </body></html>
