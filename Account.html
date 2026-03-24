@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily One Piece - Mon compte</title>
+<style>
+body { margin:0; font-family:Inter,system-ui,sans-serif; background:radial-gradient(circle at top, rgba(37,99,235,.18), transparent 40%), linear-gradient(180deg, #0b1120 0%, #0f172a 100%); color:#f8fafc; min-height:100vh; }
+.topbar { width:100%; background:rgba(17,24,39,0.95); border-bottom:1px solid rgba(255,255,255,.12); box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 0 8px rgba(37,99,235,.35); }
+.topbar-inner { max-width:1100px; margin:0 auto; padding:10px 16px; display:flex; gap:12px; align-items:center; }
+button { border:0; border-radius:12px; padding:10px 16px; font-weight:700; cursor:pointer; }
+.ghost { background:rgba(255,255,255,.06); color:#f8fafc; border:1px solid rgba(255,255,255,.08); }
+.primary { background:#2563eb; color:#fff; }
+.topbar-actions { margin-left:auto; display:flex; gap:12px; align-items:center; }
+.container { max-width:900px; margin:40px auto; padding:0 16px 48px; }
+.card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:24px; box-shadow:0 12px 30px rgba(0,0,0,.18); }
+.muted { color:rgba(248,250,252,.72); }
+.pill { display:inline-block; border-radius:999px; padding:8px 12px; background:rgba(37,99,235,.16); border:1px solid rgba(37,99,235,.3); margin-right:10px; margin-bottom:10px; }
+.status { margin-top:12px; color:rgba(248,250,252,.72); }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner"><button class="ghost" id="homeBtn">Accueil</button><button class="ghost" id="leaderboardBtn">Classement</button><div class="topbar-actions"><button class="ghost" id="loginBtn">Mon compte</button><button class="ghost" id="langToggle">FR</button></div></div></div>
+<div class="container">
+  <div class="card">
+    <h1 id="title">Mon compte</h1>
+    <p class="muted" id="subtitle">Retrouve ici les informations de ton profil.</p>
+    <div style="margin:20px 0;">
+      <span class="pill" id="pseudoPill">Pseudo :</span>
+      <span class="pill" id="emailPill">Email :</span>
+      <span class="pill" id="scorePill">Score :</span>
+    </div>
+    <p class="muted" id="pseudoLocked">Le pseudo choisi lors de l'inscription ne peut pas être modifié.</p>
+    <button class="primary" id="logoutBtn">Déconnexion</button>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  const DOP = {
+    getLang() { const urlLang = new URLSearchParams(window.location.search).get('lang'); return urlLang || localStorage.getItem('dop_lang') || 'fr'; },
+    setLang(lang) { localStorage.setItem('dop_lang', lang); },
+    getCurrentUser() { try { return JSON.parse(localStorage.getItem('dop_user') || 'null'); } catch { return null; } },
+    setCurrentUser(user) { localStorage.setItem('dop_user', JSON.stringify(user)); },
+    clearCurrentUser() { localStorage.removeItem('dop_user'); },
+    withLang(page, lang) { return `${page}?lang=${encodeURIComponent(lang || this.getLang())}`; },
+    updateTopbarLabels(translations) {
+      const lang = this.getLang(); const t = translations[lang] || translations.fr; const user = this.getCurrentUser();
+      homeBtn.textContent = t.home; leaderboardBtn.textContent = t.leaderboard; loginBtn.textContent = user ? t.account : t.login; langToggle.textContent = t.lang;
+      homeBtn.onclick = () => window.location.href = this.withLang('Homepage.html', lang);
+      leaderboardBtn.onclick = () => window.location.href = this.withLang('Leaderboard.html', lang);
+      loginBtn.onclick = () => window.location.href = this.withLang(user ? 'Account.html' : 'Login.html', lang);
+      langToggle.onclick = () => { const next = lang === 'fr' ? 'en' : 'fr'; this.setLang(next); window.location.href = this.withLang('Account.html', next); };
+    }
+  };
+  window.DOP = DOP;
+})();
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const translations = {
+    fr: { lang:'FR', home:'Accueil', leaderboard:'Classement', login:'Connexion', account:'Mon compte', title:'Mon compte', subtitle:'Retrouve ici les informations de ton profil.', logout:'Déconnexion', pseudo:(v)=>`Pseudo : ${v}`, email:(v)=>`Email : ${v}`, score:(v)=>`Score : ${v}`, locked:'Le pseudo choisi lors de l\'inscription ne peut pas être modifié.', needLogin:'Tu dois être connecté.', htmlLang:'fr' },
+    en: { lang:'EN', home:'Home', leaderboard:'Leaderboard', login:'Login', account:'My account', title:'My account', subtitle:'Find your profile information here.', logout:'Logout', pseudo:(v)=>`Username: ${v}`, email:(v)=>`Email: ${v}`, score:(v)=>`Score: ${v}`, locked:'The username chosen during sign-up cannot be changed.', needLogin:'You need to be signed in.', htmlLang:'en' }
+  };
+  const lang = window.DOP.getLang();
+  const t = translations[lang] || translations.fr;
+  document.documentElement.lang = t.htmlLang;
+  window.DOP.updateTopbarLabels(translations);
+  title.textContent = t.title; subtitle.textContent = t.subtitle; logoutBtn.textContent = t.logout; pseudoLocked.textContent = t.locked;
+
+  try {
+    const configResponse = await fetch('/api/public-config');
+    const publicConfig = await configResponse.json();
+    const supabase = window.supabase.createClient(publicConfig.supabaseUrl, publicConfig.supabaseAnonKey);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+    if (!user) {
+      window.DOP.clearCurrentUser();
+      window.location.href = window.DOP.withLang('Login.html', lang);
+      return;
+    }
+
+    const { data: profile, error } = await supabase.from('profiles').select('pseudo, email, score').eq('id', user.id).single();
+    if (error || !profile) {
+      status.textContent = error?.message || t.needLogin;
+      return;
+    }
+
+    window.DOP.setCurrentUser({ pseudo: profile.pseudo, email: profile.email, score: profile.score || 0 });
+    window.DOP.updateTopbarLabels(translations);
+    pseudoPill.textContent = t.pseudo(profile.pseudo);
+    emailPill.textContent = t.email(profile.email || user.email || '');
+    scorePill.textContent = t.score(profile.score || 0);
+
+    logoutBtn.onclick = async () => {
+      await supabase.auth.signOut();
+      window.DOP.clearCurrentUser();
+      window.location.href = window.DOP.withLang('Homepage.html', lang);
+    };
+  } catch (error) {
+    status.textContent = error.message;
+  }
+});
+</script>
+</body></html>

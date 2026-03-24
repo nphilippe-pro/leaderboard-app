@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily One Piece - Connexion</title>
+<style>
+body { margin:0; font-family:Inter,system-ui,sans-serif; background:radial-gradient(circle at top, rgba(37,99,235,.18), transparent 40%), linear-gradient(180deg, #0b1120 0%, #0f172a 100%); color:#f8fafc; min-height:100vh; }
+.topbar { width:100%; background:rgba(17,24,39,0.95); border-bottom:1px solid rgba(255,255,255,.12); box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 0 8px rgba(37,99,235,.35); }
+.topbar-inner { max-width:1100px; margin:0 auto; padding:10px 16px; display:flex; gap:12px; align-items:center; }
+button,input { font:inherit; }
+button { border:0; border-radius:12px; padding:10px 16px; font-weight:700; cursor:pointer; }
+.ghost { background:rgba(255,255,255,.06); color:#f8fafc; border:1px solid rgba(255,255,255,.08); }
+.primary { background:#2563eb; color:#fff; }
+.topbar-actions { margin-left:auto; display:flex; gap:12px; align-items:center; }
+.container { max-width:1100px; margin:40px auto; padding:0 16px 48px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px; }
+.card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:20px; box-shadow:0 12px 30px rgba(0,0,0,.18); }
+.field { display:grid; gap:8px; margin-bottom:12px; }
+label { color:rgba(248,250,252,.72); font-size:14px; }
+input { width:100%; padding:11px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.06); color:#f8fafc; }
+.status { min-height:20px; margin-top:8px; color:rgba(248,250,252,.72); font-size:14px; white-space:pre-line; }
+.linkline { margin-top:12px; font-size:14px; color:rgba(248,250,252,.72); }
+.linkline a { color:#93c5fd; text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner"><button class="ghost" id="homeBtn">Accueil</button><button class="ghost" id="leaderboardBtn">Classement</button><div class="topbar-actions"><button class="ghost" id="loginBtn">Connexion</button><button class="ghost" id="langToggle">FR</button></div></div></div>
+<div class="container">
+  <div class="grid">
+    <div class="card">
+      <h2 id="signupTitle">Créer un compte</h2>
+      <div class="field"><label id="signupPseudoLabel" for="signupPseudo">Pseudo</label><input id="signupPseudo" /></div>
+      <div class="field"><label id="signupEmailLabel" for="signupEmail">Adresse email</label><input id="signupEmail" type="email" /></div>
+      <div class="field"><label id="signupPasswordLabel" for="signupPassword">Mot de passe</label><input id="signupPassword" type="password" /></div>
+      <button class="primary" id="signupBtn">S'inscrire</button>
+      <div class="status" id="signupStatus"></div>
+    </div>
+    <div class="card">
+      <h2 id="signinTitle">Connexion</h2>
+      <div class="field"><label id="signinPseudoLabel" for="signinPseudo">Pseudo</label><input id="signinPseudo" /></div>
+      <div class="field"><label id="signinPasswordLabel" for="signinPassword">Mot de passe</label><input id="signinPassword" type="password" /></div>
+      <button class="primary" id="signinBtn">Se connecter</button>
+      <div class="linkline"><a id="forgotLink" href="ForgotPassword.html?lang=fr">Mot de passe oublié ?</a></div>
+      <div class="status" id="signinStatus"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  const DOP = {
+    getLang() {
+      const urlLang = new URLSearchParams(window.location.search).get('lang');
+      return urlLang || localStorage.getItem('dop_lang') || 'fr';
+    },
+    setLang(lang) {
+      localStorage.setItem('dop_lang', lang);
+    },
+    getCurrentUser() {
+      try { return JSON.parse(localStorage.getItem('dop_user') || 'null'); } catch { return null; }
+    },
+    setCurrentUser(user) {
+      localStorage.setItem('dop_user', JSON.stringify(user));
+    },
+    clearCurrentUser() {
+      localStorage.removeItem('dop_user');
+    },
+    withLang(page, lang) {
+      return `${page}?lang=${encodeURIComponent(lang || this.getLang())}`;
+    },
+    updateTopbarLabels(translations) {
+      const lang = this.getLang();
+      const t = translations[lang] || translations.fr;
+      const user = this.getCurrentUser();
+      const homeBtn = document.getElementById('homeBtn');
+      const leaderboardBtn = document.getElementById('leaderboardBtn');
+      const loginBtn = document.getElementById('loginBtn');
+      const langToggle = document.getElementById('langToggle');
+      if (homeBtn) homeBtn.textContent = t.home;
+      if (leaderboardBtn) leaderboardBtn.textContent = t.leaderboard;
+      if (loginBtn) loginBtn.textContent = user ? t.account : t.login;
+      if (langToggle) langToggle.textContent = t.lang;
+      if (homeBtn) homeBtn.onclick = () => window.location.href = this.withLang('Homepage.html', lang);
+      if (leaderboardBtn) leaderboardBtn.onclick = () => window.location.href = this.withLang('Leaderboard.html', lang);
+      if (loginBtn) loginBtn.onclick = () => window.location.href = this.withLang(user ? 'Account.html' : 'Login.html', lang);
+      if (langToggle) langToggle.onclick = () => {
+        const next = lang === 'fr' ? 'en' : 'fr';
+        this.setLang(next);
+        window.location.href = this.withLang('Login.html', next);
+      };
+    }
+  };
+  window.DOP = DOP;
+})();
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const translations = {
+    fr: {
+      lang:'FR', home:'Accueil', leaderboard:'Classement', login:'Connexion', account:'Mon compte',
+      signupTitle:'Créer un compte', signinTitle:'Connexion', forgot:'Mot de passe oublié ?',
+      pseudo:'Pseudo', email:'Adresse email', password:'Mot de passe',
+      signup:'S\'inscrire', signin:'Se connecter',
+      signupOk:'Compte créé. Vérifie ton email si une confirmation est demandée.',
+      signinOk:'Connexion réussie.',
+      invalid:'Merci de remplir tous les champs.',
+      invalidPseudo:'Le pseudo doit contenir 3 à 24 caractères (lettres, chiffres, _ ou -).',
+      missingConfig:'Configuration Supabase introuvable.',
+      lookupError:'Pseudo introuvable.',
+      htmlLang:'fr'
+    },
+    en: {
+      lang:'EN', home:'Home', leaderboard:'Leaderboard', login:'Login', account:'My account',
+      signupTitle:'Create account', signinTitle:'Login', forgot:'Forgot password?',
+      pseudo:'Username', email:'Email address', password:'Password',
+      signup:'Sign up', signin:'Log in',
+      signupOk:'Account created. Check your email if confirmation is required.',
+      signinOk:'Signed in successfully.',
+      invalid:'Please fill in all fields.',
+      invalidPseudo:'Username must contain 3 to 24 characters (letters, numbers, _ or -).',
+      missingConfig:'Supabase configuration not found.',
+      lookupError:'Username not found.',
+      htmlLang:'en'
+    }
+  };
+
+  const lang = window.DOP.getLang();
+  const t = translations[lang] || translations.fr;
+  document.documentElement.lang = t.htmlLang;
+  window.DOP.updateTopbarLabels(translations);
+
+  const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setTxt('signupTitle', t.signupTitle); setTxt('signinTitle', t.signinTitle);
+  setTxt('signupPseudoLabel', t.pseudo); setTxt('signupEmailLabel', t.email); setTxt('signupPasswordLabel', t.password);
+  setTxt('signinPseudoLabel', t.pseudo); setTxt('signinPasswordLabel', t.password);
+  setTxt('signupBtn', t.signup); setTxt('signinBtn', t.signin); setTxt('forgotLink', t.forgot);
+  document.getElementById('forgotLink').href = window.DOP.withLang('ForgotPassword.html', lang);
+  document.getElementById('signupPseudo').placeholder = t.pseudo;
+  document.getElementById('signupEmail').placeholder = t.email;
+  document.getElementById('signupPassword').placeholder = t.password;
+  document.getElementById('signinPseudo').placeholder = t.pseudo;
+  document.getElementById('signinPassword').placeholder = t.password;
+
+  const validPseudo = value => /^[A-Za-z0-9_-]{3,24}$/.test(value);
+
+  let supabase = null;
+  try {
+    const configResponse = await fetch('/api/public-config');
+    const publicConfig = await configResponse.json();
+    if (!publicConfig.supabaseUrl || !publicConfig.supabaseAnonKey) throw new Error(t.missingConfig);
+    supabase = window.supabase.createClient(publicConfig.supabaseUrl, publicConfig.supabaseAnonKey);
+  } catch (error) {
+    document.getElementById('signupStatus').textContent = error.message || t.missingConfig;
+    document.getElementById('signinStatus').textContent = error.message || t.missingConfig;
+    return;
+  }
+
+  async function syncCurrentUser() {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+    if (!user) {
+      window.DOP.clearCurrentUser();
+      window.DOP.updateTopbarLabels(translations);
+      return null;
+    }
+    const { data: profile } = await supabase.from('profiles').select('pseudo, email, score').eq('id', user.id).single();
+    if (profile) {
+      window.DOP.setCurrentUser({ pseudo: profile.pseudo, email: profile.email, score: profile.score || 0 });
+      window.DOP.updateTopbarLabels(translations);
+      return profile;
+    }
+    return null;
+  }
+
+  await syncCurrentUser();
+
+  document.getElementById('signupBtn').onclick = async () => {
+    const pseudo = document.getElementById('signupPseudo').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const status = document.getElementById('signupStatus');
+    status.textContent = '';
+    if (!pseudo || !email || !password) return status.textContent = t.invalid;
+    if (!validPseudo(pseudo)) return status.textContent = t.invalidPseudo;
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { pseudo } }
+    });
+
+    if (error) {
+      status.textContent = error.message;
+      return;
+    }
+
+    status.textContent = t.signupOk;
+    if (data.session) {
+      await syncCurrentUser();
+      setTimeout(() => { window.location.href = window.DOP.withLang('Account.html', lang); }, 500);
+    }
+  };
+
+  document.getElementById('signinBtn').onclick = async () => {
+    const pseudo = document.getElementById('signinPseudo').value.trim();
+    const password = document.getElementById('signinPassword').value;
+    const status = document.getElementById('signinStatus');
+    status.textContent = '';
+    if (!pseudo || !password) return status.textContent = t.invalid;
+
+    const lookupResponse = await fetch(`/api/auth-login-lookup?pseudo=${encodeURIComponent(pseudo)}`);
+    const lookup = await lookupResponse.json();
+    if (!lookupResponse.ok || !lookup.email) {
+      status.textContent = lookup.error || t.lookupError;
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: lookup.email,
+      password
+    });
+
+    if (error) {
+      status.textContent = error.message;
+      return;
+    }
+
+    await syncCurrentUser();
+    status.textContent = t.signinOk;
+    setTimeout(() => { window.location.href = window.DOP.withLang('Account.html', lang); }, 400);
+  };
+});
+</script>
+</body></html>

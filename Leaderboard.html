@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily One Piece - Classement</title>
+  <style>
+    body { margin:0; font-family:Inter,system-ui,sans-serif; background:radial-gradient(circle at top, rgba(37,99,235,.18), transparent 40%), linear-gradient(180deg, #0b1120 0%, #0f172a 100%); color:#f8fafc; min-height:100vh; }
+    .topbar { width:100%; background:rgba(17,24,39,0.95); border-bottom:1px solid rgba(255,255,255,.12); box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 0 8px rgba(37,99,235,.35); }
+    .topbar-inner { max-width:1100px; margin:0 auto; padding:10px 16px; display:flex; gap:12px; align-items:center; }
+    button { border:0; border-radius:12px; padding:10px 16px; font-weight:700; cursor:pointer; }
+    .ghost { background:rgba(255,255,255,.06); color:#f8fafc; border:1px solid rgba(255,255,255,.08); }
+    .topbar-actions { margin-left:auto; display:flex; gap:12px; align-items:center; }
+    .container { max-width:1100px; margin:40px auto; padding:0 16px 48px; }
+    .card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:18px; overflow:hidden; box-shadow:0 12px 30px rgba(0,0,0,.18); }
+    .card-header { padding:20px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+    .muted { color:rgba(248,250,252,.72); font-size:14px; }
+    table { width:100%; border-collapse:collapse; }
+    thead tr { background:rgba(255,255,255,.08); }
+    th,td { padding:14px 16px; text-align:left; }
+    tbody tr + tr td { border-top:1px solid rgba(255,255,255,.08); }
+    .pagination { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:20px; border-top:1px solid rgba(255,255,255,.08); flex-wrap:wrap; }
+    .pagination-actions { display:flex; gap:12px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <button class="ghost" id="homeBtn">Accueil</button>
+      <button class="ghost" id="leaderboardBtn">Classement</button>
+      <div class="topbar-actions">
+        <button class="ghost" id="loginBtn">Connexion</button>
+        <button class="ghost" id="langToggle">FR</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2 id="leaderboardTitle" style="margin:0 0 6px;">Classement</h2>
+          <div class="muted" id="leaderboardSubtitle">100 joueurs maximum par page. Seuls les comptes créés apparaissent.</div>
+        </div>
+        <div class="muted" id="playerCountLabel">0 joueur affiché</div>
+      </div>
+      <table>
+        <thead><tr><th id="positionHeader">Position</th><th id="pseudoHeader">Pseudo</th><th id="scoreHeader">Score</th></tr></thead>
+        <tbody id="leaderboardBody"></tbody>
+      </table>
+      <div class="pagination">
+        <div class="muted" id="pageInfo">Page 1 / 1</div>
+        <div class="pagination-actions">
+          <button class="ghost" id="prevPageBtn">Précédent</button>
+          <button class="ghost" id="nextPageBtn">Suivant</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const translations = {
+      fr: { lang:'FR', home:'Accueil', leaderboard:'Classement', login:'Connexion', account:'Mon compte', title:'Classement', subtitle:'100 joueurs maximum par page. Seuls les comptes créés apparaissent.', position:'Position', pseudo:'Pseudo', score:'Score', prev:'Précédent', next:'Suivant', page:'Page', displayed:(n)=>`${n} joueur${n>1?'s':''} affiché${n>1?'s':''}`, htmlLang:'fr' },
+      en: { lang:'EN', home:'Home', leaderboard:'Leaderboard', login:'Login', account:'My account', title:'Leaderboard', subtitle:'Up to 100 players per page. Only registered players are displayed.', position:'Rank', pseudo:'Username', score:'Score', prev:'Previous', next:'Next', page:'Page', displayed:(n)=>`${n} player${n>1?'s':''} displayed`, htmlLang:'en' }
+    };
+    let currentPage = parseInt(new URLSearchParams(location.search).get('page') || '1', 10);
+    const pageSize = 100;
+    const lang = window.DOP.getLang();
+    const t = translations[lang] || translations.fr;
+    document.documentElement.lang = t.htmlLang;
+    window.DOP.updateTopbarLabels(translations);
+    document.getElementById('leaderboardTitle').textContent = t.title;
+    document.getElementById('leaderboardSubtitle').textContent = t.subtitle;
+    document.getElementById('positionHeader').textContent = t.position;
+    document.getElementById('pseudoHeader').textContent = t.pseudo;
+    document.getElementById('scoreHeader').textContent = t.score;
+    document.getElementById('prevPageBtn').textContent = t.prev;
+    document.getElementById('nextPageBtn').textContent = t.next;
+    const users = window.DOP.getUsers().slice().sort((a,b)=>(b.score||0)-(a.score||0) || a.pseudo.localeCompare(b.pseudo));
+    const totalPages = Math.max(1, Math.ceil(users.length / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const rows = users.slice((currentPage-1)*pageSize, currentPage*pageSize);
+    const tbody = document.getElementById('leaderboardBody');
+    tbody.innerHTML = rows.map((u,i)=>`<tr><td>${(currentPage-1)*pageSize+i+1}</td><td>${u.pseudo}</td><td>${u.score||0}</td></tr>`).join('');
+    document.getElementById('pageInfo').textContent = `${t.page} ${currentPage} / ${totalPages}`;
+    document.getElementById('playerCountLabel').textContent = t.displayed(rows.length);
+    document.getElementById('prevPageBtn').disabled = currentPage <= 1;
+    document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
+    document.getElementById('prevPageBtn').onclick = () => { if (currentPage > 1) location.href = `Leaderboard.html?lang=${lang}&page=${currentPage-1}`; };
+    document.getElementById('nextPageBtn').onclick = () => { if (currentPage < totalPages) location.href = `Leaderboard.html?lang=${lang}&page=${currentPage+1}`; };
+  });
+  </script>
+
+<script>
+(function () {
+  const DOP = {
+    getLang() {
+      const urlLang = new URLSearchParams(window.location.search).get('lang');
+      return urlLang || localStorage.getItem('dop_lang') || 'fr';
+    },
+    setLang(lang) {
+      localStorage.setItem('dop_lang', lang);
+    },
+    getUsers() {
+      try { return JSON.parse(localStorage.getItem('dop_users') || '[]'); } catch { return []; }
+    },
+    saveUsers(users) {
+      localStorage.setItem('dop_users', JSON.stringify(users));
+    },
+    getCurrentUser() {
+      try { return JSON.parse(localStorage.getItem('dop_user') || 'null'); } catch { return null; }
+    },
+    setCurrentUser(user) {
+      localStorage.setItem('dop_user', JSON.stringify(user));
+    },
+    clearCurrentUser() {
+      localStorage.removeItem('dop_user');
+    },
+    updateCurrentUserFromStore() {
+      const current = this.getCurrentUser();
+      if (!current) return null;
+      const user = this.getUsers().find(u => u.pseudo === current.pseudo);
+      if (user) {
+        this.setCurrentUser({ pseudo: user.pseudo, email: user.email });
+        return user;
+      }
+      this.clearCurrentUser();
+      return null;
+    },
+    withLang(page, lang) {
+      return `${page}?lang=${encodeURIComponent(lang || this.getLang())}`;
+    },
+    switchPageLang(page) {
+      const params = new URLSearchParams(window.location.search);
+      params.set('lang', page);
+      localStorage.setItem('dop_lang', page);
+      window.location.search = params.toString();
+    },
+    updateTopbarLabels(translations) {
+      const lang = this.getLang();
+      const t = translations[lang] || translations.fr;
+      const user = this.updateCurrentUserFromStore();
+
+      const homeBtn = document.getElementById('homeBtn');
+      const leaderboardBtn = document.getElementById('leaderboardBtn');
+      const loginBtn = document.getElementById('loginBtn');
+      const langToggle = document.getElementById('langToggle');
+
+      if (homeBtn) homeBtn.textContent = t.home;
+      if (leaderboardBtn) leaderboardBtn.textContent = t.leaderboard;
+      if (loginBtn) loginBtn.textContent = user ? t.account : t.login;
+      if (langToggle) langToggle.textContent = t.lang;
+
+      if (homeBtn) {
+        const clone = homeBtn.cloneNode(true);
+        homeBtn.replaceWith(clone);
+        clone.addEventListener('click', () => window.location.href = this.withLang('Homepage.html', lang));
+      }
+      if (leaderboardBtn) {
+        const clone = leaderboardBtn.cloneNode(true);
+        leaderboardBtn.replaceWith(clone);
+        clone.addEventListener('click', () => window.location.href = this.withLang('Leaderboard.html', lang));
+      }
+      if (loginBtn) {
+        const clone = loginBtn.cloneNode(true);
+        loginBtn.replaceWith(clone);
+        clone.addEventListener('click', () => {
+          window.location.href = this.withLang(user ? 'Account.html' : 'Login.html', lang);
+        });
+      }
+      if (langToggle) {
+        const clone = langToggle.cloneNode(true);
+        langToggle.replaceWith(clone);
+        clone.addEventListener('click', () => {
+          const next = lang === 'fr' ? 'en' : 'fr';
+          this.setLang(next);
+          const params = new URLSearchParams(window.location.search);
+          params.set('lang', next);
+          window.location.search = params.toString();
+        });
+      }
+    }
+  };
+  window.DOP = DOP;
+})();
+</script>
+
+</body>
+</html>

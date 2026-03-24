@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily One Piece - Accueil</title>
+  <style>
+    body {
+      margin:0;
+      font-family: Inter, system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(37,99,235,.18), transparent 40%),
+        linear-gradient(180deg, #0b1120 0%, #0f172a 100%);
+      color:#f8fafc;
+    }
+
+    .topbar {
+      width:100%;
+      background: rgba(17,24,39,0.95);
+      border-bottom:1px solid rgba(255,255,255,.12);
+      box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 0 8px rgba(37,99,235,.35);
+    }
+
+    .topbar-inner {
+      max-width:1100px;
+      margin:0 auto;
+      padding:10px 16px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    .topbar-inner #langToggle {
+      margin-left:auto;
+    }
+
+    button {
+      border:0;
+      border-radius:12px;
+      padding:10px 16px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .ghost {
+      background: rgba(255,255,255,.06);
+      color: #f8fafc;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .container {
+      width:min(1120px, calc(100% - 32px));
+      margin:0 auto;
+      padding:32px 0 48px;
+    }
+
+    .title-image {
+      display:flex;
+      justify-content:center;
+      margin-bottom:10px;
+    }
+
+    .title-image img {
+      max-width:680px;
+      width:100%;
+    }
+
+    .panel {
+      background: rgba(17,24,39,.92);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      padding:20px;
+      box-shadow:0 12px 32px rgba(0,0,0,.28);
+      text-align:center;
+    }
+
+    .games-row {
+      display:grid;
+      grid-template-columns: repeat(2, auto);
+      gap:4px;
+      margin-top:24px;
+      justify-content:center;
+    }
+
+    .games-row img {
+      width:380px;
+      max-width:100%;
+      border-radius:14px;
+      cursor:pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .games-row img:hover {
+      transform: translateY(-4px);
+      box-shadow:0 8px 20px rgba(0,0,0,.4);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <button class="ghost" id="homeBtn">Accueil</button>
+      <button class="ghost" id="leaderboardBtn">Classement</button>
+      <div style="margin-left:auto; display:flex; gap:12px; align-items:center;">
+        <button class="ghost" id="loginBtn">Connexion</button>
+        <button class="ghost" id="langToggle" aria-label="Changer la langue">FR</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="title-image">
+      <img src="Images/titre1.png" alt="Daily One Piece">
+    </div>
+
+    <div class="panel">
+      <h1 id="welcomeTitle">Mode scan</h1>
+      <p id="introText"></p>
+
+      <div class="games-row">
+        <img id="img1" src="Images/jeu1_FR.png" alt="jeu1">
+        <img id="img2" src="Images/jeu2_FR.png" alt="jeu2">
+        <img id="img3" src="Images/jeu3_FR.png" alt="jeu3">
+        <img id="img4" src="Images/jeu4_FR.png" alt="jeu4">
+      </div>
+      
+    </div>
+  </div>
+
+  
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const translations = {
+    fr: { lang:'FR', home:'Accueil', leaderboard:'Classement', login:'Connexion', account:'Mon compte', welcome:'Mode scan', intro:'Choisis une partie et reviens sur cette page pour en lancer une nouvelle !', htmlLang:'fr' },
+    en: { lang:'EN', home:'Home', leaderboard:'Leaderboard', login:'Login', account:'My account', welcome:'Scan mode', intro:'Choose a game and come back to this page to start a new one!', htmlLang:'en' }
+  };
+  const lang = window.DOP.getLang();
+  const t = translations[lang] || translations.fr;
+  document.documentElement.lang = t.htmlLang;
+  const welcomeTitle = document.getElementById('welcomeTitle');
+  const introText = document.getElementById('introText');
+  if (welcomeTitle) welcomeTitle.textContent = t.welcome;
+  if (introText) introText.textContent = t.intro;
+  window.DOP.updateTopbarLabels(translations);
+  const ids = ['img1','img2','img3','img4'];
+  ids.forEach((id, idx) => {
+    const img = document.getElementById(id);
+    const gameNum = 1 + idx;
+    if (!img) return;
+    img.src = `Images/jeu${gameNum}_${lang.toUpperCase()}.png`;
+    img.style.cursor = 'pointer';
+    img.onclick = () => window.location.href = window.DOP.withLang(`jeu${gameNum}.html`, lang);
+  });
+});
+</script>
+
+
+<script>
+(function () {
+  const DOP = {
+    getLang() {
+      const urlLang = new URLSearchParams(window.location.search).get('lang');
+      return urlLang || localStorage.getItem('dop_lang') || 'fr';
+    },
+    setLang(lang) {
+      localStorage.setItem('dop_lang', lang);
+    },
+    getUsers() {
+      try { return JSON.parse(localStorage.getItem('dop_users') || '[]'); } catch { return []; }
+    },
+    saveUsers(users) {
+      localStorage.setItem('dop_users', JSON.stringify(users));
+    },
+    getCurrentUser() {
+      try { return JSON.parse(localStorage.getItem('dop_user') || 'null'); } catch { return null; }
+    },
+    setCurrentUser(user) {
+      localStorage.setItem('dop_user', JSON.stringify(user));
+    },
+    clearCurrentUser() {
+      localStorage.removeItem('dop_user');
+    },
+    updateCurrentUserFromStore() {
+      const current = this.getCurrentUser();
+      if (!current) return null;
+      const user = this.getUsers().find(u => u.pseudo === current.pseudo);
+      if (user) {
+        this.setCurrentUser({ pseudo: user.pseudo, email: user.email });
+        return user;
+      }
+      this.clearCurrentUser();
+      return null;
+    },
+    withLang(page, lang) {
+      return `${page}?lang=${encodeURIComponent(lang || this.getLang())}`;
+    },
+    switchPageLang(page) {
+      const params = new URLSearchParams(window.location.search);
+      params.set('lang', page);
+      localStorage.setItem('dop_lang', page);
+      window.location.search = params.toString();
+    },
+    updateTopbarLabels(translations) {
+      const lang = this.getLang();
+      const t = translations[lang] || translations.fr;
+      const user = this.updateCurrentUserFromStore();
+
+      const homeBtn = document.getElementById('homeBtn');
+      const leaderboardBtn = document.getElementById('leaderboardBtn');
+      const loginBtn = document.getElementById('loginBtn');
+      const langToggle = document.getElementById('langToggle');
+
+      if (homeBtn) homeBtn.textContent = t.home;
+      if (leaderboardBtn) leaderboardBtn.textContent = t.leaderboard;
+      if (loginBtn) loginBtn.textContent = user ? t.account : t.login;
+      if (langToggle) langToggle.textContent = t.lang;
+
+      if (homeBtn) {
+        const clone = homeBtn.cloneNode(true);
+        homeBtn.replaceWith(clone);
+        clone.addEventListener('click', () => window.location.href = this.withLang('Homepage.html', lang));
+      }
+      if (leaderboardBtn) {
+        const clone = leaderboardBtn.cloneNode(true);
+        leaderboardBtn.replaceWith(clone);
+        clone.addEventListener('click', () => window.location.href = this.withLang('Leaderboard.html', lang));
+      }
+      if (loginBtn) {
+        const clone = loginBtn.cloneNode(true);
+        loginBtn.replaceWith(clone);
+        clone.addEventListener('click', () => {
+          window.location.href = this.withLang(user ? 'Account.html' : 'Login.html', lang);
+        });
+      }
+      if (langToggle) {
+        const clone = langToggle.cloneNode(true);
+        langToggle.replaceWith(clone);
+        clone.addEventListener('click', () => {
+          const next = lang === 'fr' ? 'en' : 'fr';
+          this.setLang(next);
+          const params = new URLSearchParams(window.location.search);
+          params.set('lang', next);
+          window.location.search = params.toString();
+        });
+      }
+    }
+  };
+  window.DOP = DOP;
+})();
+</script>
+
+</body>
+</html>

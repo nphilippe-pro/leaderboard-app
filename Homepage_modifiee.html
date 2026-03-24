@@ -1,0 +1,5 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><script>
+const p = new URLSearchParams(window.location.search);
+const lang = p.get('lang') || localStorage.getItem('dop_lang') || 'fr';
+window.location.replace(`Leaderboard.html?lang=${encodeURIComponent(lang)}`);
+</script></head><body></body></html>

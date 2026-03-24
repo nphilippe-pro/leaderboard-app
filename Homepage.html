@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily One Piece - Accueil</title>
+  <style>
+    body {
+      margin:0;
+      font-family: Inter, system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(37,99,235,.18), transparent 40%),
+        linear-gradient(180deg, #0b1120 0%, #0f172a 100%);
+      color:#f8fafc;
+    }
+
+    .topbar {
+      width:100%;
+      background: rgba(17,24,39,0.95);
+      border-bottom:1px solid rgba(255,255,255,.12);
+      box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 0 8px rgba(37,99,235,.35);
+    }
+
+    .topbar-inner {
+      max-width:1100px;
+      margin:0 auto;
+      padding:10px 16px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    .topbar-inner #langToggle {
+      margin-left:auto;
+    }
+
+    button {
+      border:0;
+      border-radius:12px;
+      padding:10px 16px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .ghost {
+      background: rgba(255,255,255,.06);
+      color: #f8fafc;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .container {
+      width:min(1120px, calc(100% - 32px));
+      margin:0 auto;
+      padding:32px 0 48px;
+    }
+
+    .title-image {
+      display:flex;
+      justify-content:center;
+      margin-bottom:10px;
+    }
+
+    .title-image img {
+      max-width:680px;
+      width:100%;
+    }
+
+    .panel {
+      background: rgba(17,24,39,.92);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      padding:20px;
+      box-shadow:0 12px 32px rgba(0,0,0,.28);
+      text-align:center;
+    }
+
+    .mode-box {
+      margin-top:30px;
+      display:flex;
+      justify-content:center;
+      gap:40px;
+      flex-wrap:wrap;
+    }
+
+    .mode-inner {
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+
+      height: 110px;
+      justify-content: center;
+
+      padding:36px 44px;
+      border-radius:18px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.1);
+      font-weight:800;
+      font-size:1.4rem;
+      box-shadow: 
+        0 0 16px rgba(37,99,235,0.7),
+        0 0 32px rgba(37,99,235,0.45);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:10px;
+      min-width:260px;
+    }
+
+    .mode-inner:active {
+      transform: scale(0.95);
+      box-shadow:
+        0 0 8px rgba(37,99,235,0.8),
+        0 0 16px rgba(37,99,235,0.5);
+    }
+
+    .mode-inner img {
+      width:120px;
+      height:auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <button class="ghost" id="homeBtn">Accueil</button>
+      <button class="ghost" id="leaderboardBtn">Classement</button>
+      <div style="margin-left:auto; display:flex; gap:12px; align-items:center;">
+        <button class="ghost" id="loginBtn">Connexion</button>
+        <button class="ghost" id="langToggle" aria-label="Changer la langue">FR</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="title-image">
+      <img src="Images/titre1.png" alt="Daily One Piece">
+    </div>
+
+    <div class="panel">
+      <h1 id="welcomeTitle">Bienvenue sur Daily One Piece</h1>
+      <p id="introText"></p>
+
+      <div class="mode-box">
+        <a href="#" class="mode-inner" style="text-decoration:none; color:inherit; cursor:pointer;">
+          <img src="Images/anime.png" alt="Anime mode">
+          <div id="animeModeText">Mode anime</div>
+        </a>
+        <a href="#" class="mode-inner" style="text-decoration:none; color:inherit; cursor:pointer;">
+          <img src="Images/scan.png" alt="Scan mode">
+          <div id="scanModeText">Mode scan</div>
+        </a>
+      </div>
+
+      <p id="afterIntroText" style="margin-top:24px; line-height:1.6; color:#cbd5e1;"></p>
+    </div>
+  </div>
+
+  
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const translations = {
+    fr: {
+      lang: 'FR', home: 'Accueil', leaderboard: 'Classement', login: 'Connexion', account:'Mon compte',
+      welcome: 'Bienvenue sur Daily One Piece',
+      intro: `Tu peux tenter de deviner jusqu'à 4 personnages par jour parmi plus de 350 personnages de l'univers de One Piece.<br><br>Découvre le personnage avec le moins de tentatives possibles pour gagner un maximum de points et viser le haut du classement !<br><br>Reviens chaque jour pour découvrir de nouveaux personnages et cumuler encore plus de points.`,
+      afterIntro: `Choisis ton mode de jeu :<br>- Si tu ne regardes que l’animé alors choisis le mode anime pour éviter les spoils<br>- Si tu as lu les derniers chapitres en ligne alors choisis le mode scan`,
+      animeMode: 'Mode anime',
+      scanMode: 'Mode scan',
+      htmlLang: 'fr'
+    },
+    en: {
+      lang: 'EN', home: 'Home', leaderboard: 'Leaderboard', login: 'Login', account:'My account',
+      welcome: 'Welcome to Daily One Piece',
+      intro: `You can try to guess up to 4 characters per day among more than 350 characters from the One Piece universe.<br><br>Discover the character in as few attempts as possible to earn maximum points and climb the leaderboard!<br><br>Come back every day to discover new characters and accumulate even more points.`,
+      afterIntro: `Choose your game mode:<br>- If you only watch the anime, choose anime mode to avoid spoilers<br>- If you have read the latest chapters online, choose scan mode`,
+      animeMode: 'Anime mode',
+      scanMode: 'Scan mode',
+      htmlLang: 'en'
+    }
+  };
+  const lang = window.DOP.getLang();
+  const t = translations[lang] || translations.fr;
+  document.documentElement.lang = t.htmlLang;
+  const welcomeTitle = document.getElementById('welcomeTitle');
+  const introText = document.getElementById('introText');
+  const afterIntroText = document.getElementById('afterIntroText');
+  const animeModeText = document.getElementById('animeModeText');
+  const scanModeText = document.getElementById('scanModeText');
+  if (welcomeTitle) welcomeTitle.textContent = t.welcome;
+  if (introText) introText.innerHTML = t.intro;
+  if (afterIntroText) afterIntroText.innerHTML = t.afterIntro;
+  if (animeModeText) animeModeText.textContent = t.animeMode;
+  if (scanModeText) scanModeText.textContent = t.scanMode;
+  window.DOP.updateTopbarLabels(translations);
+  const modeLinks = document.querySelectorAll('.mode-box a.mode-inner');
+  if (modeLinks[0]) modeLinks[0].href = window.DOP.withLang('Anime_mode.html', lang);
+  if (modeLinks[1]) modeLinks[1].href = window.DOP.withLang('Scan_mode.html', lang);
+});
+</script>
+
+
+<script>
+(function () {
+  const DOP = {
+    getLang() {
+      const urlLang = new URLSearchParams(window.location.search).get('lang');
+      return urlLang || localStorage.getItem('dop_lang') || 'fr';
+    },
+    setLang(lang) {
+      localStorage.setItem('dop_lang', lang);
+    },
+    getUsers() {
+      try { return JSON.parse(localStorage.getItem('dop_users') || '[]'); } catch { return []; }
+    },
+    saveUsers(users) {
+      localStorage.setItem('dop_users', JSON.stringify(users));
+    },
+    getCurrentUser() {
+      try { return JSON.parse(localStorage.getItem('dop_user') || 'null'); } catch { return null; }
+    },
+    setCurrentUser(user) {
+      localStorage.setItem('dop_user', JSON.stringify(user));
+    },
+    clearCurrentUser() {
+      localStorage.removeItem('dop_user');
+    },
+    updateCurrentUserFromStore() {
+      const current = this.getCurrentUser();
+      if (!current) return null;
+      const user = this.getUsers().find(u => u.pseudo === current.pseudo);
+      if (user) {
+        this.setCurrentUser({ pseudo: user.pseudo, email: user.email });
+        return user;
+      }
+      this.clearCurrentUser();
+      return null;
+    },
+    withLang(page, lang) {
+      return `${page}?lang=${encodeURIComponent(lang || this.getLang())}`;
+    },
+    switchPageLang(page) {
+      const params = new URLSearchParams(window.location.search);
+      params.set('lang', page);
+      localStorage.setItem('dop_lang', page);
+      window.location.search = params.toString();
+    },
+    updateTopbarLabels(translations) {
+      const lang = this.getLang();
+      const t = translations[lang] || translations.fr;
+      const user = this.updateCurrentUserFromStore();
+
+      const homeBtn = document.getElementById('homeBtn');
+      const leaderboardBtn = document.getElementById('leaderboardBtn');
+      const loginBtn = document.getElementById('loginBtn');
+      const langToggle = document.getElementById('langToggle');
+
+      if (homeBtn) homeBtn.textContent = t.home;
+      if (leaderboardBtn) leaderboardBtn.textContent = t.leaderboard;
+      if (loginBtn) loginBtn.textContent = user ? t.account : t.login;
+      if (langToggle) langToggle.textContent = t.lang;
+
+      if (homeBtn) {
+        const clone = homeBtn.cloneNode(true);
+        homeBtn.replaceWith(clone);
+        clone.addEventListener('click', () => window.location.href = this.withLang('Homepage.html', lang));
+      }
+      if (leaderboardBtn) {
+        const clone = leaderboardBtn.cloneNode(true);
+        leaderboardBtn.replaceWith(clone);
+        clone.addEventListener('click', () => window.location.href = this.withLang('Leaderboard.html', lang));
+      }
+      if (loginBtn) {
+        const clone = loginBtn.cloneNode(true);
+        loginBtn.replaceWith(clone);
+        clone.addEventListener('click', () => {
+          window.location.href = this.withLang(user ? 'Account.html' : 'Login.html', lang);
+        });
+      }
+      if (langToggle) {
+        const clone = langToggle.cloneNode(true);
+        langToggle.replaceWith(clone);
+        clone.addEventListener('click', () => {
+          const next = lang === 'fr' ? 'en' : 'fr';
+          this.setLang(next);
+          const params = new URLSearchParams(window.location.search);
+          params.set('lang', next);
+          window.location.search = params.toString();
+        });
+      }
+    }
+  };
+  window.DOP = DOP;
+})();
+</script>
+
+</body>
+</html>

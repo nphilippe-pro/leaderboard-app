@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>One Piece Guess</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --green: #16a34a;
+      --red: #dc2626;
+      --amber: #f59e0b;
+      --border: rgba(255,255,255,.08);
+      --shadow: 0 12px 32px rgba(0,0,0,.28);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(37,99,235,.18), transparent 40%),
+        linear-gradient(180deg, #0b1120 0%, #0f172a 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .container {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+    .hero {
+      position: relative;
+      z-index: 5000;
+      display: flex;
+      gap: 18px;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      max-width: 720px;
+      line-height: 1.5;
+    }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .panel {
+      position: relative;
+      z-index: 1;
+      overflow: visible;
+      background: rgba(17,24,39,.92);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+    .controls {
+      position: relative;
+      z-index: 5001;
+      padding: 18px;
+      overflow: visible;
+      display: grid;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .controls-row {
+      position: relative;
+      z-index: 2000;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .input-wrap {
+      display: grid;
+      gap: 8px;
+      flex: 1;
+      min-width: 280px;
+    }
+    label {
+      font-weight: 600;
+      font-size: .95rem;
+    }
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: #0b1220;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+    input:focus {
+      border-color: rgba(59,130,246,.8);
+      box-shadow: 0 0 0 3px rgba(59,130,246,.18);
+    }
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s ease, opacity .15s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    .primary { background: #2563eb; color: white; }
+    .secondary { background: #374151; color: white; }
+    .ghost {
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .stats {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      padding: 14px 16px;
+      min-width: 150px;
+    }
+    .stat-label { color: var(--muted); font-size: .85rem; }
+    .stat-value { font-size: 1.4rem; font-weight: 800; margin-top: 4px; }
+    .message {
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      border-radius: 14px;
+      display: none;
+      font-weight: 600;
+    }
+    .message.show { display: block; }
+    .message.success { background: rgba(22,163,74,.16); border: 1px solid rgba(22,163,74,.35); color: #bbf7d0; }
+    .message.info { background: rgba(37,99,235,.16); border: 1px solid rgba(37,99,235,.35); color: #bfdbfe; }
+    .table-wrap {
+      position: relative;
+      z-index: 1;
+      overflow-x: auto;
+      padding: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 8px;
+      min-width: 980px;
+    }
+    th {
+      color: var(--muted);
+      font-size: .82rem;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      text-align: center;
+    }
+    td {
+      padding: 14px 12px;
+      border-radius: 14px;
+      text-align: center;
+      font-weight: 700;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      white-space: normal;
+    }
+    td.correct {
+      background: rgba(22,163,74,.95);
+      color: white;
+      border-color: rgba(255,255,255,.18);
+    }
+    td.incorrect {
+      background: rgba(220,38,38,.92);
+      color: white;
+      border-color: rgba(255,255,255,.12);
+    }
+    .cell-content {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .arrow {
+      font-size: 1.05rem;
+      line-height: 1;
+      font-weight: 900;
+    }
+    .legend {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: .92rem;
+      padding: 0 8px 4px;
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .dot-green { background: var(--green); }
+    .dot-red { background: var(--red); }
+    .footer-note {
+      position: relative;
+      z-index: 1;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+
+    
+    .search-wrap {
+      position: relative;
+      z-index: 6000;
+      isolation: isolate;
+    }
+    .search-box {
+      position: relative;
+      z-index: 7000;
+      isolation: isolate;
+    }
+    .suggestions-box {
+      position: absolute;
+      isolation: isolate;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      pointer-events: auto;
+      z-index: 999999;
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 14px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+      max-height: 360px;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .suggestions-hint {
+      display: none;
+    }
+    .suggestions-list {
+      display: grid;
+      gap: 4px;
+    }
+    .suggestion-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 12px;
+      text-align: left;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 0.98rem;
+      font-weight: 600;
+    }
+    .suggestion-item:hover,
+    .suggestion-item.active {
+      background: rgba(37,99,235,.18);
+      transform: none;
+    }
+    .suggestion-item img {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: rgba(255,255,255,.05);
+      flex-shrink: 0;
+    }
+    .suggestion-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .suggestions-empty {
+      padding: 14px 12px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+
+    .result-thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .result-thumb-fallback {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .95rem;
+      font-weight: 800;
+      color: white;
+      background: rgba(37,99,235,.28);
+      border: 1px solid rgba(255,255,255,.08);
+      margin: 0 auto;
+    }
+
+
+    th:first-child {
+      width: 84px;
+    }
+
+    
+.win-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999999;
+  cursor: pointer;
+  padding: 24px;
+}
+.win-popup[hidden] {
+  display: none !important;
+}
+.win-popup img {
+  max-width: min(92vw, 720px);
+  max-height: 92vh;
+  width: auto;
+  height: auto;
+  border-radius: 16px;
+  display: block;
+}
+
+
+.title-image {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 0 6px;
+}
+.title-image img {
+  max-width: 100%;
+  height: auto;
+}
+
+
+    .title-image {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 0 6px;
+}
+    .title-image img {
+      display: block;
+      max-width: min(100%, 680px);
+      width: 100%;
+      height: auto;
+    }
+
+
+    .subtitle-image {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 0 6px;
+}
+    .subtitle-image img {
+      display: block;
+      width: 50%;
+      max-width: 360px;
+      height: auto;
+    }
+
+
+    
+
+
+    .topbar {
+      width: 100%;
+      background: rgba(17,24,39,0.95);
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 0 8px rgba(37,99,235,.35);
+    }
+    .topbar-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topbar-inner #langToggle {
+      margin-left: auto;
+    }
+    
+    .topbar-spacer {
+      flex: 1;
+    }
+    .hero {
+      margin-top: 10px;
+    }
+
+@media (max-width: 720px) {
+    .subtitle-image img { width: 90%; max-width: none; }
+
+      .container { width: min(100% - 20px, 1120px); padding-top: 20px; }
+      .controls, .stat-card { border-radius: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <button class="ghost" id="homeBtn">Accueil</button>
+      <button class="ghost" id="leaderboardBtn">Classement</button>
+      <div style="margin-left:auto; display:flex; gap:10px;">
+        <button class="ghost" id="loginBtn">Connexion</button>
+        <button class="ghost" id="langToggle">FR</button>
+    </div>
+  </div>
+  </div>
+
+  <div class="container">
+    <div class="hero">
+      <div>
+        <div id="title" class="title-image"><img src="./Images/./titre1.png" alt="One Piece Guess" /></div>
+        <div id="subtitle" class="subtitle-image"><img id="subtitleImg" src="./Images/jeu8_FR.png" alt="Description" /></div>
+      </div>
+      <div class="toolbar">
+        
+        <button class="secondary" id="newDayBtn" title="Réinitialise seulement la partie du jour">Réinitialiser</button>
+      </div>
+    </div>
+
+    <div class="panel controls">
+      <div class="controls-row">
+        <div class="input-wrap search-wrap">
+          <label for="guessInput" id="guessLabel">Choisir un personnage</label>
+          <div class="search-box">
+            <input id="guessInput" autocomplete="off" placeholder="Ex. Luffy" aria-autocomplete="list" aria-expanded="false" aria-controls="suggestionsList" />
+            <div id="suggestionsBox" class="suggestions-box" hidden>
+              <div id="suggestionsHint" class="suggestions-hint"></div>
+              <div id="suggestionsList" class="suggestions-list" role="listbox" aria-label="Suggestions de personnages"></div>
+            </div>
+          </div>
+        </div>
+        <button class="primary" id="guessBtn">Valider</button>
+      </div>
+    </div>
+
+    <div class="stats" style="position:relative; z-index:1;">
+      <div class="panel stat-card">
+        <div class="stat-label" id="triesLabel">Essais</div>
+        <div class="stat-value" id="triesValue">0</div>
+      </div>
+      <div class="panel stat-card">
+        <div class="stat-label" id="statusLabel">Statut</div>
+        <div class="stat-value" id="statusValue">En cours</div>
+      </div>
+      <div class="panel stat-card">
+        <div class="stat-label" id="dayLabel">Jour</div>
+        <div class="stat-value" id="dayValue">-</div>
+      </div>
+    </div>
+
+    <div id="messageBox" class="message info"></div>
+
+    <div class="legend" style="position:relative; z-index:1;">
+      <span><i class="legend-dot dot-green"></i> <span id="legendCorrect">Correct</span></span>
+      <span><i class="legend-dot dot-red"></i> <span id="legendIncorrect">Incorrect</span></span>
+      <span id="legendPrime">Prime : ↑ plus élevée, ↓ plus faible</span>
+      <span id="legendArc">Première apparition : ↑ plus tard, ↓ plus tôt</span>
+    </div>
+
+    <div class="panel table-wrap" style="position:relative; z-index:1;">
+      <table>
+        <thead>
+          <tr id="tableHeadRow"></tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+
+    <p class="footer-note" id="footerNote">
+      Le personnage du jour est déterminé à partir de la date du jour (fuseau Europe/Paris) et reste identique pour tous les joueurs ce jour-là.
+    </p>
+  </div>
+
+
+  <div id="winPopup" class="win-popup" hidden>
+    <img id="winPopupImg" src="" alt="Bravo" />
+  </div>
+
+  <script>
+    const characters = [{"ID": "#001", "Personnage_FR": "Alvida", "Personnage_EN": "Alvida", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Cross Guild", "Affiliation_EN": "Cross Guild", "Prime_FR": 5000000, "Prime_EN": 5000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Alvida_Portrait.webp", "Mode-anime": true}, {"ID": "#002", "Personnage_FR": "Ben Beckmann", "Personnage_EN": "Ben Beckmann", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Roux", "Affiliation_EN": "Red Hair Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Ben_Beckmann_Portrait.webp", "Mode-anime": true}, {"ID": "#003", "Personnage_FR": "Gol D. Roger", "Personnage_EN": "Gol D. Roger", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Pirates de Roger", "Affiliation_EN": "Roger Pirates", "Prime_FR": 5564800000, "Prime_EN": 5564800000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Gol_D._Roger_Portrait.webp", "Mode-anime": true}, {"ID": "#004", "Personnage_FR": "Hermep", "Personnage_EN": "Helmeppo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Hermep_Portrait.webp", "Mode-anime": true}, {"ID": "#005", "Personnage_FR": "Higuma", "Personnage_EN": "Higuma", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 8000000, "Prime_EN": 8000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Higuma_Portrait.webp", "Mode-anime": true}, {"ID": "#006", "Personnage_FR": "Koby", "Personnage_EN": "Koby", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Koby_Portrait.webp", "Mode-anime": true}, {"ID": "#007", "Personnage_FR": "Kuina", "Personnage_EN": "Kuina", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Shimotsuki_Kuina_Portrait.webp", "Mode-anime": true}, {"ID": "#008", "Personnage_FR": "Lucky Roux", "Personnage_EN": "Lucky Roux", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Roux", "Affiliation_EN": "Red Hair Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Lucky_Roux_Portrait.webp", "Mode-anime": true}, {"ID": "#009", "Personnage_FR": "Makino", "Personnage_EN": "Makino", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Makino_Portrait.webp", "Mode-anime": true}, {"ID": "#010", "Personnage_FR": "Monkey D. Luffy", "Personnage_EN": "Monkey D. Luffy", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Chapeau de Paille", "Affiliation_EN": "Straw Hat Pirates", "Prime_FR": 3000000000, "Prime_EN": 3000000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Monkey_D_Luffy_Portrait.webp", "Mode-anime": true}, {"ID": "#011", "Personnage_FR": "Morgan", "Personnage_EN": "Morgan", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Morgan_Portrait.webp", "Mode-anime": true}, {"ID": "#012", "Personnage_FR": "Roronoa Zoro", "Personnage_EN": "Roronoa Zoro", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Chapeau de Paille", "Affiliation_EN": "Straw Hat Pirates", "Prime_FR": 1111000000, "Prime_EN": 1111000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Roronoa_Zoro_Post_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#013", "Personnage_FR": "Shanks le roux", "Personnage_EN": "Shanks Red-Haired", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Roux", "Affiliation_EN": "Red Hair Pirates", "Prime_FR": 4048900000, "Prime_EN": 4048900000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Shanks_Portrait.webp", "Mode-anime": true}, {"ID": "#014", "Personnage_FR": "Yasopp", "Personnage_EN": "Yasopp", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Roux", "Affiliation_EN": "Red Hair Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Romance Dawn", "Premiere-apparition_EN": "Romance Dawn", "Image": "Yasopp_Portrait.webp", "Mode-anime": true}, {"ID": "#015", "Personnage_FR": "Baggy", "Personnage_EN": "Buggy", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Cross Guild", "Affiliation_EN": "Cross Guild", "Prime_FR": 3189000000, "Prime_EN": 3189000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Orange Town", "Premiere-apparition_EN": "Orange Town", "Image": "Baggy_Portrait.webp", "Mode-anime": true}, {"ID": "#016", "Personnage_FR": "Cabaji", "Personnage_EN": "Cabaji", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Cross Guild", "Affiliation_EN": "Cross Guild", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Orange Town", "Premiere-apparition_EN": "Orange Town", "Image": "Cabaji_Portrait.webp", "Mode-anime": true}, {"ID": "#017", "Personnage_FR": "Morge", "Personnage_EN": "Morge", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Cross Guild", "Affiliation_EN": "Cross Guild", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Orange Town", "Premiere-apparition_EN": "Orange Town", "Image": "Mohji_Portrait.webp", "Mode-anime": true}, {"ID": "#018", "Personnage_FR": "Nami", "Personnage_EN": "Nami", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage du Chapeau de Paille", "Affiliation_EN": "Straw Hat Pirates", "Prime_FR": 366000000, "Prime_EN": 366000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Orange Town", "Premiere-apparition_EN": "Orange Town", "Image": "Nami_Portrait.webp", "Mode-anime": true}, {"ID": "#019", "Personnage_FR": "Buchi", "Personnage_EN": "Buchi", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Kuro", "Affiliation_EN": "Kuro Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Village de Sirop", "Premiere-apparition_EN": "Syrup Village", "Image": "Buchi_Portrait.webp", "Mode-anime": true}, {"ID": "#020", "Personnage_FR": "Gaimon", "Personnage_EN": "Gaimon", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Village de Sirop", "Premiere-apparition_EN": "Syrup Village", "Image": "Gaimon_Portrait.webp", "Mode-anime": true}, {"ID": "#021", "Personnage_FR": "Jango", "Personnage_EN": "Jango", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Village de Sirop", "Premiere-apparition_EN": "Syrup Village", "Image": "Jango_Pirate_Portrait.webp", "Mode-anime": true}, {"ID": "#022", "Personnage_FR": "Kaya", "Personnage_EN": "Kaya", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Village de Sirop", "Premiere-apparition_EN": "Syrup Village", "Image": "Kaya_Portrait.webp", "Mode-anime": true}, {"ID": "#023", "Personnage_FR": "Kuro", "Personnage_EN": "Kuro", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Kuro", "Affiliation_EN": "Kuro Pirates", "Prime_FR": 16000000, "Prime_EN": 16000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Village de Sirop", "Premiere-apparition_EN": "Syrup Village", "Image": "Kuro_Portrait.webp", "Mode-anime": true}, {"ID": "#024", "Personnage_FR": "Sham", "Personnage_EN": "Sham", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Kuro", "Affiliation_EN": "Kuro Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Village de Sirop", "Premiere-apparition_EN": "Syrup Village", "Image": "Sham_Portrait.webp", "Mode-anime": true}, {"ID": "#025", "Personnage_FR": "Usopp", "Personnage_EN": "Usopp", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Chapeau de Paille", "Affiliation_EN": "Straw Hat Pirates", "Prime_FR": 500000000, "Prime_EN": 500000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Village de Sirop", "Premiere-apparition_EN": "Syrup Village", "Image": "Usopp_Post_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#026", "Personnage_FR": "Don Krieg", "Personnage_EN": "Don Krieg", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Don Krieg", "Affiliation_EN": "Pirate Armada", "Prime_FR": 17000000, "Prime_EN": 17000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Baratie", "Premiere-apparition_EN": "Baratie", "Image": "Krieg_Portrait.webp", "Mode-anime": true}, {"ID": "#027", "Personnage_FR": "Dracule Mihawk", "Personnage_EN": "Dracule Mihawk", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Cross Guild", "Affiliation_EN": "Cross Guild", "Prime_FR": 3590000000, "Prime_EN": 3590000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Baratie", "Premiere-apparition_EN": "Baratie", "Image": "Dracule_Mihawk_Portrait.webp", "Mode-anime": true}, {"ID": "#028", "Personnage_FR": "Gin", "Personnage_EN": "Gin", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Don Krieg", "Affiliation_EN": "Pirate Armada", "Prime_FR": 12000000, "Prime_EN": 12000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Baratie", "Premiere-apparition_EN": "Baratie", "Image": "Gin_Portrait.webp", "Mode-anime": true}, {"ID": "#029", "Personnage_FR": "Johnny", "Personnage_EN": "Johnny", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Baratie", "Premiere-apparition_EN": "Baratie", "Image": "Johnny_Portrait.webp", "Mode-anime": true}, {"ID": "#030", "Personnage_FR": "Patty", "Personnage_EN": "Patty", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Baratie", "Affiliation_EN": "Baratie", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Baratie", "Premiere-apparition_EN": "Baratie", "Image": "Patty_Portrait.webp", "Mode-anime": true}, {"ID": "#031", "Personnage_FR": "Vinsmoke Sanji", "Personnage_EN": "Sanji", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Chapeau de Paille", "Affiliation_EN": "Straw Hat Pirates", "Prime_FR": 1032000000, "Prime_EN": 1032000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Baratie", "Premiere-apparition_EN": "Baratie", "Image": "Sanji_Portrait.webp", "Mode-anime": true}, {"ID": "#032", "Personnage_FR": "Yosaku", "Personnage_EN": "Yosaku", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Baratie", "Premiere-apparition_EN": "Baratie", "Image": "Yosaku.webp", "Mode-anime": true}, {"ID": "#033", "Personnage_FR": "Zeff", "Personnage_EN": "Zeff", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Baratie", "Affiliation_EN": "Baratie", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Baratie", "Premiere-apparition_EN": "Baratie", "Image": "Zeff_Portrait.webp", "Mode-anime": true}, {"ID": "#034", "Personnage_FR": "Arlong", "Personnage_EN": "Arlong", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Pirates d'Arlong", "Affiliation_EN": "Arlong Pirates", "Prime_FR": 20000000, "Prime_EN": 20000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Arlong Park", "Premiere-apparition_EN": "Arlong Park", "Image": "Arlong_Portrait.webp", "Mode-anime": true}, {"ID": "#035", "Personnage_FR": "Belmer", "Personnage_EN": "Belmer", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Arlong Park", "Premiere-apparition_EN": "Arlong Park", "Image": "Bell-mere_Portrait.webp", "Mode-anime": true}, {"ID": "#036", "Personnage_FR": "Genzo", "Personnage_EN": "Genzo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Arlong Park", "Premiere-apparition_EN": "Arlong Park", "Image": "Genzo_Portrait.webp", "Mode-anime": true}, {"ID": "#037", "Personnage_FR": "Hatchan", "Personnage_EN": "Hatchan", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Ile des Hommes Poisson", "Affiliation_EN": "Fish-Man Island", "Prime_FR": 8000000, "Prime_EN": 8000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Arlong Park", "Premiere-apparition_EN": "Arlong Park", "Image": "Octo_Portrait.webp", "Mode-anime": true}, {"ID": "#038", "Personnage_FR": "Kuroobi", "Personnage_EN": "Kuroobi", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Pirates d'Arlong", "Affiliation_EN": "Arlong Pirates", "Prime_FR": 9000000, "Prime_EN": 9000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Arlong Park", "Premiere-apparition_EN": "Arlong Park", "Image": "Kuroobi_Portrait.webp", "Mode-anime": true}, {"ID": "#039", "Personnage_FR": "Nezumi", "Personnage_EN": "Nezumi", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Arlong Park", "Premiere-apparition_EN": "Arlong Park", "Image": "Nezumi_Portrait.webp", "Mode-anime": true}, {"ID": "#040", "Personnage_FR": "Nojiko", "Personnage_EN": "Nojiko", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Arlong Park", "Premiere-apparition_EN": "Arlong Park", "Image": "Nojiko_Portrait.webp", "Mode-anime": true}, {"ID": "#041", "Personnage_FR": "Smack (Chew)", "Personnage_EN": "Smack (Chew)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Pirates d'Arlong", "Affiliation_EN": "Arlong Pirates", "Prime_FR": 5500000, "Prime_EN": 5500000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Arlong Park", "Premiere-apparition_EN": "Arlong Park", "Image": "Smack_Portrait.webp", "Mode-anime": true}, {"ID": "#042", "Personnage_FR": "Monkey D. Dragon", "Personnage_EN": "Monkey D. Dragon", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Armée révolutionnaire", "Affiliation_EN": "Revolutionary army", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Inconnu", "Fruit-du-demon_EN": "Unknown", "Premiere-apparition_FR": "Loguetown", "Premiere-apparition_EN": "Loguetown", "Image": "Monkey_D._Dragon_Portrait.webp", "Mode-anime": true}, {"ID": "#043", "Personnage_FR": "Smoker", "Personnage_EN": "Smoker", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Logia", "Fruit-du-demon_EN": "Logia", "Premiere-apparition_FR": "Loguetown", "Premiere-apparition_EN": "Loguetown", "Image": "Smoker_Post_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#044", "Personnage_FR": "Tashigi", "Personnage_EN": "Tashigi", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Loguetown", "Premiere-apparition_EN": "Loguetown", "Image": "Tashigi_Portrait.webp", "Mode-anime": true}, {"ID": "#045", "Personnage_FR": "Crocus", "Personnage_EN": "Crocus", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Pirates de Roger", "Affiliation_EN": "Roger Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Reverse Moutain", "Premiere-apparition_EN": "Reverse Moutain", "Image": "Crocus_Pirate_Roger_Portrait.webp", "Mode-anime": true}, {"ID": "#046", "Personnage_FR": "Laboon", "Personnage_EN": "Laboon", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Reverse Moutain", "Premiere-apparition_EN": "Reverse Moutain", "Image": "Laboon_Portrait.webp", "Mode-anime": true}, {"ID": "#047", "Personnage_FR": "Mr 9", "Personnage_EN": "Mr 9", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Baroque Works", "Affiliation_EN": "Baroque Works", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Reverse Moutain", "Premiere-apparition_EN": "Reverse Moutain", "Image": "Mr_9_Pre_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#048", "Personnage_FR": "Nefertari Vivi", "Personnage_EN": "Nefertary Vivi", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Royaume d'Alabasta", "Affiliation_EN": "Alabasta Kingdom", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Reverse Moutain", "Premiere-apparition_EN": "Reverse Moutain", "Image": "Nefertari_Vivi_Portrait.webp", "Mode-anime": true}, {"ID": "#049", "Personnage_FR": "Kaloo", "Personnage_EN": "Kaloo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume d'Alabasta", "Affiliation_EN": "Alabasta Kingdom", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Whiskey Peak", "Premiere-apparition_EN": "Whiskey Peak", "Image": "Kaloo_Portrait.webp", "Mode-anime": true}, {"ID": "#050", "Personnage_FR": "Miss Monday", "Personnage_EN": "Miss Monday", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Baroque Works", "Affiliation_EN": "Baroque Works", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Whiskey Peak", "Premiere-apparition_EN": "Whiskey Peak", "Image": "Miss_Monday_Portrait.webp", "Mode-anime": true}, {"ID": "#051", "Personnage_FR": "Miss Valentine", "Personnage_EN": "Miss Valentine", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Baroque Works", "Affiliation_EN": "Baroque Works", "Prime_FR": 7500000, "Prime_EN": 7500000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Whiskey Peak", "Premiere-apparition_EN": "Whiskey Peak", "Image": "Mikita_Portrait.webp", "Mode-anime": true}, {"ID": "#052", "Personnage_FR": "Mr 5", "Personnage_EN": "Mr 5", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Baroque Works", "Affiliation_EN": "Baroque Works", "Prime_FR": 10000000, "Prime_EN": 10000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Whiskey Peak", "Premiere-apparition_EN": "Whiskey Peak", "Image": "Gem_Portrait.webp", "Mode-anime": true}, {"ID": "#053", "Personnage_FR": "Mr 8 (Igaram)", "Personnage_EN": "Mr 8 (Igaram)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume d'Alabasta", "Affiliation_EN": "Alabasta Kingdom", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Whiskey Peak", "Premiere-apparition_EN": "Whiskey Peak", "Image": "Igaram_Portrait.webp", "Mode-anime": true}, {"ID": "#054", "Personnage_FR": "Nico Robin", "Personnage_EN": "Nico Robin", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage du Chapeau de Paille", "Affiliation_EN": "Straw Hat Pirates", "Prime_FR": 930000000, "Prime_EN": 930000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Whiskey Peak", "Premiere-apparition_EN": "Whiskey Peak", "Image": "Nico_Robin_Portrait.webp", "Mode-anime": true}, {"ID": "#055", "Personnage_FR": "Broggy", "Personnage_EN": "Broggy", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Elbaph", "Affiliation_EN": "Elbaph", "Prime_FR": 1800000000, "Prime_EN": 1800000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Little Garden", "Premiere-apparition_EN": "Little Garden", "Image": "Brogy_Portrait.webp", "Mode-anime": true}, {"ID": "#056", "Personnage_FR": "Crocodile", "Personnage_EN": "Crocodile", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Cross Guild", "Affiliation_EN": "Cross Guild", "Prime_FR": 1965000000, "Prime_EN": 1965000000, "Fruit-du-demon_FR": "Logia", "Fruit-du-demon_EN": "Logia", "Premiere-apparition_FR": "Little Garden", "Premiere-apparition_EN": "Little Garden", "Image": "Crocodile_Portrait.webp", "Mode-anime": true}, {"ID": "#057", "Personnage_FR": "Dorry", "Personnage_EN": "Dorry", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Elbaph", "Affiliation_EN": "Elbaph", "Prime_FR": 1800000000, "Prime_EN": 1800000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Little Garden", "Premiere-apparition_EN": "Little Garden", "Image": "Dorry_Portrait.webp", "Mode-anime": true}, {"ID": "#058", "Personnage_FR": "Miss Goldenweek", "Personnage_EN": "Miss Goldenweek", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Baroque Works", "Affiliation_EN": "Baroque Works", "Prime_FR": 29000000, "Prime_EN": 29000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Little Garden", "Premiere-apparition_EN": "Little Garden", "Image": "Marianne_Portrait.webp", "Mode-anime": true}, {"ID": "#059", "Personnage_FR": "Mr 3 (Galdino)", "Personnage_EN": "Mr 3 (Galdino)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Cross Guild", "Affiliation_EN": "Cross Guild", "Prime_FR": 24000000, "Prime_EN": 24000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Little Garden", "Premiere-apparition_EN": "Little Garden", "Image": "Galdino_Portrait.webp", "Mode-anime": true}, {"ID": "#060", "Personnage_FR": "Chess", "Personnage_EN": "Chess", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume de Drum", "Affiliation_EN": "Drum Island", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Royaume de Drum", "Premiere-apparition_EN": "Drum Island", "Image": "Chess_Portrait.webp", "Mode-anime": true}, {"ID": "#061", "Personnage_FR": "Chopper", "Personnage_EN": "Chopper", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Chapeau de Paille", "Affiliation_EN": "Straw Hat Pirates", "Prime_FR": 1000, "Prime_EN": 1000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Royaume de Drum", "Premiere-apparition_EN": "Drum Island", "Image": "Tony_Tony_Chopper_Post_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#062", "Personnage_FR": "Dolton", "Personnage_EN": "Dolton", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume de Drum", "Affiliation_EN": "Drum Island", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Royaume de Drum", "Premiere-apparition_EN": "Drum Island", "Image": "Dalton_Portrait.webp", "Mode-anime": true}, {"ID": "#063", "Personnage_FR": "Dr Hiluluk", "Personnage_EN": "Dr Hiluluk", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume de Drum", "Affiliation_EN": "Drum Island", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Royaume de Drum", "Premiere-apparition_EN": "Drum Island", "Image": "Hiluluk_Portrait.webp", "Mode-anime": true}, {"ID": "#064", "Personnage_FR": "Dr Kureha", "Personnage_EN": "Dr Kureha", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Drum", "Affiliation_EN": "World nobles", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Royaume de Drum", "Premiere-apparition_EN": "Drum Island", "Image": "Kureha_Portrait.webp", "Mode-anime": true}, {"ID": "#065", "Personnage_FR": "Kuromarimo", "Personnage_EN": "Kuromarimo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume de Drum", "Affiliation_EN": "Drum Island", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Royaume de Drum", "Premiere-apparition_EN": "Drum Island", "Image": "Kuromarimo_Portrait.webp", "Mode-anime": true}, {"ID": "#066", "Personnage_FR": "Wapol", "Personnage_EN": "Wapol", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume de Drum", "Affiliation_EN": "Drum Island", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Royaume de Drum", "Premiere-apparition_EN": "Drum Island", "Image": "Wapol_Portrait.webp", "Mode-anime": true}, {"ID": "#067", "Personnage_FR": "Chaka", "Personnage_EN": "Chaka", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume d'Alabasta", "Affiliation_EN": "Alabasta Kingdom", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Alabasta", "Premiere-apparition_EN": "Alabasta", "Image": "Chaka_Portrait.webp", "Mode-anime": true}, {"ID": "#068", "Personnage_FR": "Hina", "Personnage_EN": "Hina", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Alabasta", "Premiere-apparition_EN": "Alabasta", "Image": "Hina_Portrait.webp", "Mode-anime": true}, {"ID": "#069", "Personnage_FR": "Koza", "Personnage_EN": "Koza", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume d'Alabasta", "Affiliation_EN": "Alabasta Kingdom", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Alabasta", "Premiere-apparition_EN": "Alabasta", "Image": "Koza_Portrait.webp", "Mode-anime": true}, {"ID": "#070", "Personnage_FR": "Miss Doublefinger", "Personnage_EN": "Miss Doublefinger", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Baroque Works", "Affiliation_EN": "Baroque Works", "Prime_FR": 35000000, "Prime_EN": 35000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Alabasta", "Premiere-apparition_EN": "Alabasta", "Image": "Zala_Portrait.webp", "Mode-anime": true}, {"ID": "#071", "Personnage_FR": "Miss Merrychristmas", "Personnage_EN": "Miss Merrychristmas", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Baroque Works", "Affiliation_EN": "Baroque Works", "Prime_FR": 14000000, "Prime_EN": 14000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Alabasta", "Premiere-apparition_EN": "Alabasta", "Image": "Drophy_Portrait.webp", "Mode-anime": true}, {"ID": "#072", "Personnage_FR": "Mr 1 (Daz Bonez)", "Personnage_EN": "Mr 1 (Daz Bonez)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Cross Guild", "Affiliation_EN": "Cross Guild", "Prime_FR": 75000000, "Prime_EN": 75000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Alabasta", "Premiere-apparition_EN": "Alabasta", "Image": "Daz_Bonez_Portrait.webp", "Mode-anime": true}, {"ID": "#073", "Personnage_FR": "Mr 2 (Bonclay)", "Personnage_EN": "Mr 2 (Bonclay)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Baroque Works", "Affiliation_EN": "Baroque Works", "Prime_FR": 32000000, "Prime_EN": 32000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Alabasta", "Premiere-apparition_EN": "Alabasta", "Image": "Bentham_Portrait.webp", "Mode-anime": true}, {"ID": "#074", "Personnage_FR": "Mr 4", "Personnage_EN": "Mr 4", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Baroque Works", "Affiliation_EN": "Baroque Works", "Prime_FR": 3200000, "Prime_EN": 3200000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Alabasta", "Premiere-apparition_EN": "Alabasta", "Image": "Babe_Portrait.webp", "Mode-anime": true}, {"ID": "#075", "Personnage_FR": "Nefertari Cobra", "Personnage_EN": "Nefertari Cobra", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume d'Alabasta", "Affiliation_EN": "Alabasta Kingdom", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Alabasta", "Premiere-apparition_EN": "Alabasta", "Image": "Nefertari_Cobra_Portrait.webp", "Mode-anime": true}, {"ID": "#076", "Personnage_FR": "Pell", "Personnage_EN": "Pell", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume d'Alabasta", "Affiliation_EN": "Alabasta Kingdom", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Alabasta", "Premiere-apparition_EN": "Alabasta", "Image": "Pell_Portrait.webp", "Mode-anime": true}, {"ID": "#077", "Personnage_FR": "Portgas D. Ace", "Personnage_EN": "Portgas D. Ace", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": 550000000, "Prime_EN": 550000000, "Fruit-du-demon_FR": "Logia", "Fruit-du-demon_EN": "Logia", "Premiere-apparition_FR": "Alabasta", "Premiere-apparition_EN": "Alabasta", "Image": "Portgas_D._Ace_Portrait.webp", "Mode-anime": true}, {"ID": "#078", "Personnage_FR": "Bartholomew Kuma", "Personnage_EN": "Bartholomew Kuma", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Armée révolutionnaire", "Affiliation_EN": "Revolutionary army", "Prime_FR": 296000000, "Prime_EN": 296000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Bartholomew_Kuma_Portrait.webp", "Mode-anime": true}, {"ID": "#079", "Personnage_FR": "Bellamy", "Personnage_EN": "Bellamy", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": 195000000, "Prime_EN": 195000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Bellamy_Portrait.webp", "Mode-anime": true}, {"ID": "#080", "Personnage_FR": "Bigknife Sarquiss", "Personnage_EN": "Bigknife Sarquiss", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Bellamy", "Affiliation_EN": "Bellamy Pirates", "Prime_FR": 38000000, "Prime_EN": 38000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Sarquiss_Portrait.webp", "Mode-anime": true}, {"ID": "#081", "Personnage_FR": "Doc Q", "Personnage_EN": "Doc Q", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Noire", "Affiliation_EN": "Blackbeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Doc_Q_Portrait.webp", "Mode-anime": true}, {"ID": "#082", "Personnage_FR": "Donquixote Doflamingo", "Personnage_EN": "Donquixote Doflamingo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": 340000000, "Prime_EN": 340000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Don_Quichotte_Doflamingo_Portrait.webp", "Mode-anime": true}, {"ID": "#083", "Personnage_FR": "Edward Newgate (Barbe Blanche)", "Personnage_EN": "Edward Newgate (Whitebeard)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": 5046000000, "Prime_EN": 5046000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Edward_Newgate_Portrait.webp", "Mode-anime": true}, {"ID": "#084", "Personnage_FR": "Jesus Burgess", "Personnage_EN": "Jesus Burgess", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Noire", "Affiliation_EN": "Blackbeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Jesus_Burgess_Portrait.webp", "Mode-anime": true}, {"ID": "#085", "Personnage_FR": "Lafitte", "Personnage_EN": "Lafitte", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Noire", "Affiliation_EN": "Blackbeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Inconnu", "Fruit-du-demon_EN": "Unknown", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Laffitte_Portrait.webp", "Mode-anime": true}, {"ID": "#086", "Personnage_FR": "Marshall D. Teach (Barbe Noire)", "Personnage_EN": "Marshall D. Teach (Blackbeard)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Noire", "Affiliation_EN": "Blackbeard Pirates", "Prime_FR": 3996000000, "Prime_EN": 3996000000, "Fruit-du-demon_FR": "Paramecia / Logia", "Fruit-du-demon_EN": "Paramecia / Logia", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Marshall_D._Teach_Portrait.webp", "Mode-anime": true}, {"ID": "#087", "Personnage_FR": "Masira", "Personnage_EN": "Masira", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Forces spéciales simiesques", "Affiliation_EN": "Saruyama Alliance", "Prime_FR": 23000000, "Prime_EN": 23000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Masira_Portrait.webp", "Mode-anime": true}, {"ID": "#088", "Personnage_FR": "Montblanc Cricket", "Personnage_EN": "Montblanc Cricket", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Forces spéciales simiesques", "Affiliation_EN": "Saruyama Alliance", "Prime_FR": 25000000, "Prime_EN": 25000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Mont_Blanc_Cricket_Portrait.webp", "Mode-anime": true}, {"ID": "#089", "Personnage_FR": "Rockstar", "Personnage_EN": "Rockstar", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Roux", "Affiliation_EN": "Red Hair Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Rockstar_Portrait.webp", "Mode-anime": true}, {"ID": "#090", "Personnage_FR": "Saint Ethanbaron V. Nusjuro", "Personnage_EN": "Saint Ethanbaron V. Nusjuro", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Gouvernement mondial", "Affiliation_EN": "World Government", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Saint_Ethanbaron_V._Nusjuro_Portrait.webp", "Mode-anime": true}, {"ID": "#091", "Personnage_FR": "Saint Jaygarcia Saturn", "Personnage_EN": "Saint Jaygarcia Saturn", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Gouvernement mondial", "Affiliation_EN": "World Government", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Saint_Jaygarcia_Saturn_Portrait.webp", "Mode-anime": true}, {"ID": "#092", "Personnage_FR": "Saint Marcus Mars", "Personnage_EN": "Saint Marcus Mars", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Gouvernement mondial", "Affiliation_EN": "World Government", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Saint_Marcus_Mars_Portrait.webp", "Mode-anime": true}, {"ID": "#093", "Personnage_FR": "Saint Shepherd Ju Peter", "Personnage_EN": "Saint Shepherd Ju Peter", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Gouvernement mondial", "Affiliation_EN": "World Government", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Saint_Shepherd_Ju_Peter_Portrait.webp", "Mode-anime": true}, {"ID": "#094", "Personnage_FR": "Saint Topman Warcury", "Personnage_EN": "Saint Topman Warcury", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Gouvernement mondial", "Affiliation_EN": "World Government", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Saint_Topman_Warcury_Portrait.webp", "Mode-anime": true}, {"ID": "#095", "Personnage_FR": "Sengoku", "Personnage_EN": "Sengoku", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Sengoku_Pre_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#096", "Personnage_FR": "Shojo", "Personnage_EN": "Shojo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Forces spéciales simiesques", "Affiliation_EN": "Saruyama Alliance", "Prime_FR": 36000000, "Prime_EN": 36000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Sh3F_Portrait.webp", "Mode-anime": true}, {"ID": "#097", "Personnage_FR": "Tsuru", "Personnage_EN": "Tsuru", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Tsuru_Portrait.webp", "Mode-anime": true}, {"ID": "#098", "Personnage_FR": "Van Augur", "Personnage_EN": "Van Augur", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Noire", "Affiliation_EN": "Blackbeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Jaya", "Premiere-apparition_EN": "Jaya", "Image": "Van_Augur_Portrait.webp", "Mode-anime": true}, {"ID": "#099", "Personnage_FR": "Braham", "Personnage_EN": "Braham", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Tribu des Shandia", "Affiliation_EN": "Shandia", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Skypiea", "Premiere-apparition_EN": "Skypiea", "Image": "Braham_Portrait.webp", "Mode-anime": true}, {"ID": "#100", "Personnage_FR": "Conis", "Personnage_EN": "Conis", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Skypiea", "Affiliation_EN": "Skypiea", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Skypiea", "Premiere-apparition_EN": "Skypiea", "Image": "Conis_Portrait.webp", "Mode-anime": true}, {"ID": "#101", "Personnage_FR": "Ener", "Personnage_EN": "Ener", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Skypiea", "Affiliation_EN": "Skypiea", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Logia", "Fruit-du-demon_EN": "Logia", "Premiere-apparition_FR": "Skypiea", "Premiere-apparition_EN": "Skypiea", "Image": "Enel_Portrait.webp", "Mode-anime": true}, {"ID": "#102", "Personnage_FR": "Gan Forr", "Personnage_EN": "Gan Forr", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Skypiea", "Affiliation_EN": "Skypiea", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Skypiea", "Premiere-apparition_EN": "Skypiea", "Image": "Gan_Forr_Portrait.webp", "Mode-anime": true}, {"ID": "#103", "Personnage_FR": "Gedatsu", "Personnage_EN": "Gedatsu", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Skypiea", "Affiliation_EN": "Skypiea", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Skypiea", "Premiere-apparition_EN": "Skypiea", "Image": "Gedatsu_Portrait.webp", "Mode-anime": true}, {"ID": "#104", "Personnage_FR": "Genbo", "Personnage_EN": "Genbo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Tribu des Shandia", "Affiliation_EN": "Shandia", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Skypiea", "Premiere-apparition_EN": "Skypiea", "Image": "Genbo_Portrait.webp", "Mode-anime": true}, {"ID": "#105", "Personnage_FR": "Kamakiri", "Personnage_EN": "Kamakiri", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Tribu des Shandia", "Affiliation_EN": "Shandia", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Skypiea", "Premiere-apparition_EN": "Skypiea", "Image": "Kamakiri_Portrait.webp", "Mode-anime": true}, {"ID": "#106", "Personnage_FR": "Om", "Personnage_EN": "Om", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Skypiea", "Affiliation_EN": "Skypiea", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Skypiea", "Premiere-apparition_EN": "Skypiea", "Image": "Ohm_Portrait.webp", "Mode-anime": true}, {"ID": "#107", "Personnage_FR": "Pagaya", "Personnage_EN": "Pagaya", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Skypiea", "Affiliation_EN": "Skypiea", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Skypiea", "Premiere-apparition_EN": "Skypiea", "Image": "Pagaya_Portrait.webp", "Mode-anime": true}, {"ID": "#108", "Personnage_FR": "Satori", "Personnage_EN": "Satori", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Skypiea", "Affiliation_EN": "Skypiea", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Skypiea", "Premiere-apparition_EN": "Skypiea", "Image": "Satori_Portrait.webp", "Mode-anime": true}, {"ID": "#109", "Personnage_FR": "Shura", "Personnage_EN": "Shura", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Skypiea", "Affiliation_EN": "Skypiea", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Skypiea", "Premiere-apparition_EN": "Skypiea", "Image": "Shura_Portrait.webp", "Mode-anime": true}, {"ID": "#110", "Personnage_FR": "Wiper", "Personnage_EN": "Wiper", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Tribu des Shandia", "Affiliation_EN": "Shandia", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Skypiea", "Premiere-apparition_EN": "Skypiea", "Image": "Wiper_Portrait.webp", "Mode-anime": true}, {"ID": "#111", "Personnage_FR": "Foxy", "Personnage_EN": "Foxy", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Foxy", "Affiliation_EN": "Foxy Pirates", "Prime_FR": 24000000, "Prime_EN": 24000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Long Ring Long Land", "Premiere-apparition_EN": "Long Ring Long Land", "Image": "Foxy_Portrait.webp", "Mode-anime": true}, {"ID": "#112", "Personnage_FR": "Hamburg", "Personnage_EN": "Hamburg", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Foxy", "Affiliation_EN": "Foxy Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Long Ring Long Land", "Premiere-apparition_EN": "Long Ring Long Land", "Image": "Hamburg_Portrait.webp", "Mode-anime": true}, {"ID": "#113", "Personnage_FR": "Kuzan (Aokiji)", "Personnage_EN": "Kuzan (Aokiji)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Noire", "Affiliation_EN": "Blackbeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Logia", "Fruit-du-demon_EN": "Logia", "Premiere-apparition_FR": "Long Ring Long Land", "Premiere-apparition_EN": "Long Ring Long Land", "Image": "Kuzan_Post_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#114", "Personnage_FR": "Porché", "Personnage_EN": "Porché", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage de Foxy", "Affiliation_EN": "Foxy Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Long Ring Long Land", "Premiere-apparition_EN": "Long Ring Long Land", "Image": "Porche_Portrait.webp", "Mode-anime": true}, {"ID": "#115", "Personnage_FR": "Blueno", "Personnage_EN": "Blueno", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "CP0", "Affiliation_EN": "CP0", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Water Seven", "Premiere-apparition_EN": "Water Seven", "Image": "Blueno_Portrait.webp", "Mode-anime": true}, {"ID": "#116", "Personnage_FR": "Franky", "Personnage_EN": "Franky", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Chapeau de Paille", "Affiliation_EN": "Straw Hat Pirates", "Prime_FR": 394000000, "Prime_EN": 394000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Water Seven", "Premiere-apparition_EN": "Water Seven", "Image": "Franky_Post_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#117", "Personnage_FR": "Icebarg", "Personnage_EN": "Icebarg", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Water Seven", "Premiere-apparition_EN": "Water Seven", "Image": "Icebarg.webp", "Mode-anime": true}, {"ID": "#118", "Personnage_FR": "Kaku", "Personnage_EN": "Kaku", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "CP0", "Affiliation_EN": "CP0", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Water Seven", "Premiere-apparition_EN": "Water Seven", "Image": "Kaku_Portrait.webp", "Mode-anime": true}, {"ID": "#119", "Personnage_FR": "Kalifa", "Personnage_EN": "Kalifa", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "CP0", "Affiliation_EN": "CP0", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Water Seven", "Premiere-apparition_EN": "Water Seven", "Image": "Kalifa_Portrait.webp", "Mode-anime": true}, {"ID": "#120", "Personnage_FR": "Kokoro", "Personnage_EN": "Kokoro", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Water Seven", "Premiere-apparition_EN": "Water Seven", "Image": "Kokoro_Portrait.webp", "Mode-anime": true}, {"ID": "#121", "Personnage_FR": "Pauly", "Personnage_EN": "Pauly", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Water Seven", "Premiere-apparition_EN": "Water Seven", "Image": "Pauly_Portrait.webp", "Mode-anime": true}, {"ID": "#122", "Personnage_FR": "Peeply Lulu", "Personnage_EN": "Peeply Lulu", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Water Seven", "Premiere-apparition_EN": "Water Seven", "Image": "Peeply_Lulu_Portrait.webp", "Mode-anime": true}, {"ID": "#123", "Personnage_FR": "Rob Lucci", "Personnage_EN": "Rob Lucci", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "CP0", "Affiliation_EN": "CP0", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Water Seven", "Premiere-apparition_EN": "Water Seven", "Image": "Rob_Lucci_Portrait.webp", "Mode-anime": true}, {"ID": "#124", "Personnage_FR": "Spandam", "Personnage_EN": "Spandam", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "CP0", "Affiliation_EN": "CP0", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Water Seven", "Premiere-apparition_EN": "Water Seven", "Image": "Spandam_Portrait.webp", "Mode-anime": true}, {"ID": "#125", "Personnage_FR": "Tilestone", "Personnage_EN": "Tilestone", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Water Seven", "Premiere-apparition_EN": "Water Seven", "Image": "Tilestone_Portrait.webp", "Mode-anime": true}, {"ID": "#126", "Personnage_FR": "Tom", "Personnage_EN": "Tom", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Water Seven", "Premiere-apparition_EN": "Water Seven", "Image": "Tom_Portrait.webp", "Mode-anime": true}, {"ID": "#127", "Personnage_FR": "Doberman", "Personnage_EN": "Doberman", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Enies Lobby", "Premiere-apparition_EN": "Enies Lobby", "Image": "Doberman_Portrait.webp", "Mode-anime": true}, {"ID": "#128", "Personnage_FR": "Fukuro", "Personnage_EN": "Fukuro", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "CP0", "Affiliation_EN": "CP0", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Enies Lobby", "Premiere-apparition_EN": "Enies Lobby", "Image": "Fukuro_Portrait.webp", "Mode-anime": true}, {"ID": "#129", "Personnage_FR": "Jabra", "Personnage_EN": "Jabra", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "CP0", "Affiliation_EN": "CP0", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Enies Lobby", "Premiere-apparition_EN": "Enies Lobby", "Image": "Jabura_Portrait.webp", "Mode-anime": true}, {"ID": "#130", "Personnage_FR": "Jaguar D Saul", "Personnage_EN": "Jaguar D. Saul", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Elbaph", "Affiliation_EN": "Elbaph", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Enies Lobby", "Premiere-apparition_EN": "Enies Lobby", "Image": "Haguar_D._Sauro_Portrait.webp", "Mode-anime": true}, {"ID": "#131", "Personnage_FR": "Kashii", "Personnage_EN": "Kashii", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Elbaph", "Affiliation_EN": "Elbaph", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Enies Lobby", "Premiere-apparition_EN": "Enies Lobby", "Image": "Kashii_Portrait.webp", "Mode-anime": true}, {"ID": "#132", "Personnage_FR": "Kumadori", "Personnage_EN": "Kumadori", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "CP0", "Affiliation_EN": "CP0", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Enies Lobby", "Premiere-apparition_EN": "Enies Lobby", "Image": "Kumadori_Portrait.webp", "Mode-anime": true}, {"ID": "#133", "Personnage_FR": "Momonga", "Personnage_EN": "Momonga", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Enies Lobby", "Premiere-apparition_EN": "Enies Lobby", "Image": "Momonga_Portrait.webp", "Mode-anime": true}, {"ID": "#134", "Personnage_FR": "Oimo", "Personnage_EN": "Oimo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Elbaph", "Affiliation_EN": "Elbaph", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Enies Lobby", "Premiere-apparition_EN": "Enies Lobby", "Image": "Oimo_Portrait.webp", "Mode-anime": true}, {"ID": "#135", "Personnage_FR": "Onigumo", "Personnage_EN": "Onigumo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Enies Lobby", "Premiere-apparition_EN": "Enies Lobby", "Image": "Onigumo_Portrait.webp", "Mode-anime": true}, {"ID": "#136", "Personnage_FR": "Strawberry", "Personnage_EN": "Strawberry", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Enies Lobby", "Premiere-apparition_EN": "Enies Lobby", "Image": "Strawberry_Portrait.webp", "Mode-anime": true}, {"ID": "#137", "Personnage_FR": "Yamakaji", "Personnage_EN": "Yamakaji", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Enies Lobby", "Premiere-apparition_EN": "Enies Lobby", "Image": "Yamakaji_Portrait.webp", "Mode-anime": true}, {"ID": "#138", "Personnage_FR": "Jozu", "Personnage_EN": "Jozu", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Post Enies Lobby", "Premiere-apparition_EN": "Post Enies Lobby", "Image": "Joz_Portrait.webp", "Mode-anime": true}, {"ID": "#139", "Personnage_FR": "Marco", "Personnage_EN": "Marco", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": 1374000000, "Prime_EN": 1374000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Post Enies Lobby", "Premiere-apparition_EN": "Post Enies Lobby", "Image": "Marco_Portrait.webp", "Mode-anime": true}, {"ID": "#140", "Personnage_FR": "Monkey D. Garp", "Personnage_EN": "Monkey D. Garp", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Post Enies Lobby", "Premiere-apparition_EN": "Post Enies Lobby", "Image": "Monkey_D_Garp_Portrait.webp", "Mode-anime": true}, {"ID": "#141", "Personnage_FR": "Absalom", "Personnage_EN": "Absalom", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Thriller Bark", "Affiliation_EN": "Thriller Bark", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Thriller Bark", "Premiere-apparition_EN": "Thriller Bark", "Image": "Absalom_Portrait.webp", "Mode-anime": true}, {"ID": "#142", "Personnage_FR": "Brook", "Personnage_EN": "Brook", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Chapeau de Paille", "Affiliation_EN": "Straw Hat Pirates", "Prime_FR": 383000000, "Prime_EN": 383000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Thriller Bark", "Premiere-apparition_EN": "Thriller Bark", "Image": "Brook_Portrait.webp", "Mode-anime": true}, {"ID": "#143", "Personnage_FR": "Dr Hogback", "Personnage_EN": "Dr Hogback", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Thriller Bark", "Affiliation_EN": "Thriller Bark", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Thriller Bark", "Premiere-apparition_EN": "Thriller Bark", "Image": "Hogback_Portrait.webp", "Mode-anime": true}, {"ID": "#144", "Personnage_FR": "Gecko Moria", "Personnage_EN": "Gecko Moria", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Thriller Bark", "Affiliation_EN": "Thriller Bark", "Prime_FR": 320000000, "Prime_EN": 320000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Thriller Bark", "Premiere-apparition_EN": "Thriller Bark", "Image": "Gecko_Moria_Portrait.webp", "Mode-anime": true}, {"ID": "#145", "Personnage_FR": "Oars (Oz)", "Personnage_EN": "Oars (Oz)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Thriller Bark", "Affiliation_EN": "Thriller Bark", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Thriller Bark", "Premiere-apparition_EN": "Thriller Bark", "Image": "Oz_Portrait.webp", "Mode-anime": true}, {"ID": "#146", "Personnage_FR": "Perona", "Personnage_EN": "Perona", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Thriller Bark", "Affiliation_EN": "Thriller Bark", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Thriller Bark", "Premiere-apparition_EN": "Thriller Bark", "Image": "Perona_Pre_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#147", "Personnage_FR": "Ryuma", "Personnage_EN": "Ryuma", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Wano", "Affiliation_EN": "Wano", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Thriller Bark", "Premiere-apparition_EN": "Thriller Bark", "Image": "Ryuma_Zombie_Portrait.webp", "Mode-anime": true}, {"ID": "#148", "Personnage_FR": "Basil Hawkins", "Personnage_EN": "Basil Hawkins", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Pirates de Hawkins", "Affiliation_EN": "Hawkins Pirates", "Prime_FR": 320000000, "Prime_EN": 320000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Basil_Hawkins_Post_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#149", "Personnage_FR": "Bepo", "Personnage_EN": "Bepo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Pirates du cœur", "Affiliation_EN": "Heart Pirates", "Prime_FR": 1500, "Prime_EN": 1500, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Bepo_Portrait.webp", "Mode-anime": true}, {"ID": "#150", "Personnage_FR": "Borsalino (Kizaru)", "Personnage_EN": "Borsalino (Kizaru)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Logia", "Fruit-du-demon_EN": "Logia", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Borsalino_Portrait.webp", "Mode-anime": true}, {"ID": "#151", "Personnage_FR": "Camie", "Personnage_EN": "Camie", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Ile des Hommes Poisson", "Affiliation_EN": "Fish-Man Island", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Camie_Post_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#152", "Personnage_FR": "Capone Bege", "Personnage_EN": "Capone Bege", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Fire Tank", "Affiliation_EN": "Fire Tank Pirates", "Prime_FR": 350000000, "Prime_EN": 350000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Capone_Bege_Portrait.webp", "Mode-anime": true}, {"ID": "#153", "Personnage_FR": "Duval", "Personnage_EN": "Duval", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Duval_Nouveau_Visage.webp", "Mode-anime": true}, {"ID": "#154", "Personnage_FR": "Eustass Kid", "Personnage_EN": "Eustass Kid", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Pirates de Kid", "Affiliation_EN": "Kid Pirates", "Prime_FR": 3000000000, "Prime_EN": 3000000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Eustass_Kid_Portrait.webp", "Mode-anime": true}, {"ID": "#155", "Personnage_FR": "Jean Bart", "Personnage_EN": "Jean Bart", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Pirates du cœur", "Affiliation_EN": "Heart Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Jean_Bart_Portrait.webp", "Mode-anime": true}, {"ID": "#156", "Personnage_FR": "Jewerly Bonney", "Personnage_EN": "Jewerly Bonney", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Pirates de Bonney", "Affiliation_EN": "Bonney Pirates", "Prime_FR": 320000000, "Prime_EN": 320000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Jewelry_Bonney_Portrait.webp", "Mode-anime": true}, {"ID": "#157", "Personnage_FR": "Killer", "Personnage_EN": "Killer", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Pirates de Kid", "Affiliation_EN": "Kid Pirates", "Prime_FR": 200000000, "Prime_EN": 200000000, "Fruit-du-demon_FR": "Smile", "Fruit-du-demon_EN": "Smile", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Killer_Portrait.webp", "Mode-anime": true}, {"ID": "#158", "Personnage_FR": "Pappagg", "Personnage_EN": "Pappagg", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Ile des Hommes Poisson", "Affiliation_EN": "Fish-Man Island", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Pappag_Portrait.webp", "Mode-anime": true}, {"ID": "#159", "Personnage_FR": "Saint Rosward Charlos", "Personnage_EN": "Saint Rosward Charlos", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Dragons célestes", "Affiliation_EN": "World nobles", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Saint_Rosward_Charlos_Portrait.webp", "Mode-anime": true}, {"ID": "#160", "Personnage_FR": "Saint Rosward Rosward", "Personnage_EN": "Saint Rosward Rosward", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Dragons célestes", "Affiliation_EN": "World nobles", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Saint_Rosward_Rosward_Portrait.webp", "Mode-anime": true}, {"ID": "#161", "Personnage_FR": "Saint Rosward Sharlia", "Personnage_EN": "Saint Rosward Sharlia", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Dragons célestes", "Affiliation_EN": "World nobles", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Sainte_Rosward_Sharlia_Portrait.webp", "Mode-anime": true}, {"ID": "#162", "Personnage_FR": "Scratchmen Apoo", "Personnage_EN": "Scratchmen Apoo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Pirates du On-Air", "Affiliation_EN": "On-Air Pirates", "Prime_FR": 350000000, "Prime_EN": 350000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Scratchmen_Apoo_Post_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#163", "Personnage_FR": "Sentomaru", "Personnage_EN": "Sentomaru", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Sentomaru_Portrait.webp", "Mode-anime": true}, {"ID": "#164", "Personnage_FR": "Shakuyaku (Shakky)", "Personnage_EN": "Shakuyaku (Shakky)", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Pirates Kuja", "Affiliation_EN": "Kuja Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Shakuyaku_Portrait.webp", "Mode-anime": true}, {"ID": "#165", "Personnage_FR": "Silvers Rayleigh", "Personnage_EN": "Silvers Rayleigh", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Pirates de Roger", "Affiliation_EN": "Roger Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Silvers_Rayleigh_Jeune_Portrait.webp", "Mode-anime": true}, {"ID": "#166", "Personnage_FR": "Trafalgar D. Law", "Personnage_EN": "Trafalgar D Law", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Pirates du cœur", "Affiliation_EN": "Heart Pirates", "Prime_FR": 3000000000, "Prime_EN": 3000000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Trafalgar_D_Water_Law_Portrait.webp", "Mode-anime": true}, {"ID": "#167", "Personnage_FR": "Urouge", "Personnage_EN": "Urouge", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Pirates du moine hérétique", "Affiliation_EN": "Fallen Monk Pirates", "Prime_FR": 108000000, "Prime_EN": 108000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "Urouge_Portrait.webp", "Mode-anime": true}, {"ID": "#168", "Personnage_FR": "X Drake", "Personnage_EN": "X Drake", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Archipel Sabaody", "Premiere-apparition_EN": "Sabaody Archipelago", "Image": "X_Drake_Portrait.webp", "Mode-anime": true}, {"ID": "#169", "Personnage_FR": "Boa Hancock", "Personnage_EN": "Boa Hancock", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Pirates Kuja", "Affiliation_EN": "Kuja Pirates", "Prime_FR": 1659000000, "Prime_EN": 1659000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Amazon Lily", "Premiere-apparition_EN": "Amazon Lily", "Image": "Boa_Hancock_Portrait.webp", "Mode-anime": true}, {"ID": "#170", "Personnage_FR": "Boa Marigold", "Personnage_EN": "Boa Marigold", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Pirates Kuja", "Affiliation_EN": "Kuja Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Amazon Lily", "Premiere-apparition_EN": "Amazon Lily", "Image": "Boa_Marigold_Portrait.webp", "Mode-anime": true}, {"ID": "#171", "Personnage_FR": "Boa Sandersonia", "Personnage_EN": "Boa Sandersonia", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Pirates Kuja", "Affiliation_EN": "Kuja Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Amazon Lily", "Premiere-apparition_EN": "Amazon Lily", "Image": "Boa_Sandersonia_Portrait.webp", "Mode-anime": true}, {"ID": "#172", "Personnage_FR": "Gloriosa", "Personnage_EN": "Gloriosa", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Pirates Kuja", "Affiliation_EN": "Kuja Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Amazon Lily", "Premiere-apparition_EN": "Amazon Lily", "Image": "Nyon_Portrait.webp", "Mode-anime": true}, {"ID": "#173", "Personnage_FR": "Marguerite", "Personnage_EN": "Marguerite", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Pirates Kuja", "Affiliation_EN": "Kuja Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Amazon Lily", "Premiere-apparition_EN": "Amazon Lily", "Image": "Marguerite_Portrait.webp", "Mode-anime": true}, {"ID": "#174", "Personnage_FR": "Sweet Pea", "Personnage_EN": "Sweet Pea", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Pirates Kuja", "Affiliation_EN": "Kuja Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Amazon Lily", "Premiere-apparition_EN": "Amazon Lily", "Image": "Sweet_Pea_Portrait.webp", "Mode-anime": true}, {"ID": "#175", "Personnage_FR": "Emporio Ivankov", "Personnage_EN": "Emporio Ivankov", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Armée révolutionnaire", "Affiliation_EN": "Revolutionary army", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Impel Down", "Premiere-apparition_EN": "Impel Down", "Image": "Emporio_Ivankov_Portrait.webp", "Mode-anime": true}, {"ID": "#176", "Personnage_FR": "Hannyabal", "Personnage_EN": "Hannyabal", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Gouvernement mondial", "Affiliation_EN": "World Government", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Impel Down", "Premiere-apparition_EN": "Impel Down", "Image": "Hannyabal_Pre_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#177", "Personnage_FR": "Inazuma", "Personnage_EN": "Inazuma", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Armée révolutionnaire", "Affiliation_EN": "Revolutionary army", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Impel Down", "Premiere-apparition_EN": "Impel Down", "Image": "Inazuma_Portrait.webp", "Mode-anime": true}, {"ID": "#178", "Personnage_FR": "Jinbe", "Personnage_EN": "Jinbe", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Chapeau de Paille", "Affiliation_EN": "Straw Hat Pirates", "Prime_FR": 1100000000, "Prime_EN": 1100000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Impel Down", "Premiere-apparition_EN": "Impel Down", "Image": "Jinbe_Portrait.webp", "Mode-anime": true}, {"ID": "#179", "Personnage_FR": "Magellan", "Personnage_EN": "Magellan", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Gouvernement mondial", "Affiliation_EN": "World Government", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Impel Down", "Premiere-apparition_EN": "Impel Down", "Image": "Magellan_Pre_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#180", "Personnage_FR": "Sadi", "Personnage_EN": "Sadi", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Gouvernement mondial", "Affiliation_EN": "World Government", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Impel Down", "Premiere-apparition_EN": "Impel Down", "Image": "Sadi_Portrait.webp", "Mode-anime": true}, {"ID": "#181", "Personnage_FR": "Shiryu", "Personnage_EN": "Shiryu", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Noire", "Affiliation_EN": "Blackbeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Impel Down", "Premiere-apparition_EN": "Impel Down", "Image": "Shiliew_Portrait.webp", "Mode-anime": true}, {"ID": "#182", "Personnage_FR": "Avalo Pizzaro", "Personnage_EN": "Avalo Pizzaro", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Noire", "Affiliation_EN": "Blackbeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Avalo_Pizarro_Portrait.webp", "Mode-anime": true}, {"ID": "#183", "Personnage_FR": "Bastille", "Personnage_EN": "Bastille", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Bastille_Portrait.webp", "Mode-anime": true}, {"ID": "#184", "Personnage_FR": "Bonk Punch", "Personnage_EN": "Bonk Punch", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Roux", "Affiliation_EN": "Red Hair Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Membre_quipage_du_Roux_Portrait_2.webp", "Mode-anime": true}, {"ID": "#185", "Personnage_FR": "Building Snake", "Personnage_EN": "Building Snake", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Roux", "Affiliation_EN": "Red Hair Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Membre_quipage_du_Roux_Portrait_3.webp", "Mode-anime": true}, {"ID": "#186", "Personnage_FR": "Catalina Devon", "Personnage_EN": "Catalina Devon", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage de Barbe Noire", "Affiliation_EN": "Blackbeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Catarina_Devon_Portrait.webp", "Mode-anime": true}, {"ID": "#187", "Personnage_FR": "Curiel", "Personnage_EN": "Curiel", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Curiel_Portrait.webp", "Mode-anime": true}, {"ID": "#188", "Personnage_FR": "Dalmatien", "Personnage_EN": "Dalmatian", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Dalmatien_Portrait.webp", "Mode-anime": true}, {"ID": "#189", "Personnage_FR": "Fossa", "Personnage_EN": "Fossa", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Fossa_Portrait.webp", "Mode-anime": true}, {"ID": "#190", "Personnage_FR": "Haruta", "Personnage_EN": "Haruta", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Haruta_Portrait.webp", "Mode-anime": true}, {"ID": "#191", "Personnage_FR": "Izou", "Personnage_EN": "Izou", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Izou_Portrait.webp", "Mode-anime": true}, {"ID": "#192", "Personnage_FR": "John Giant", "Personnage_EN": "John Giant", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "John_Giant_Portrait.webp", "Mode-anime": true}, {"ID": "#193", "Personnage_FR": "Limejuice", "Personnage_EN": "Limejuice", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du Roux", "Affiliation_EN": "Red Hair Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Limejuice_Portrait.webp", "Mode-anime": true}, {"ID": "#194", "Personnage_FR": "Little Oars Jr.", "Personnage_EN": "Little Oars Jr.", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Oz_Jr_Portrait.webp", "Mode-anime": true}, {"ID": "#195", "Personnage_FR": "Lonz", "Personnage_EN": "Lonz", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Ronse_Portrait.webp", "Mode-anime": true}, {"ID": "#196", "Personnage_FR": "Namur", "Personnage_EN": "Namur", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Namur_Portrait.webp", "Mode-anime": true}, {"ID": "#197", "Personnage_FR": "Rakuyo", "Personnage_EN": "Rakuyo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Rakuyo_Portrait.webp", "Mode-anime": true}, {"ID": "#198", "Personnage_FR": "Sakazuki (Akainu)", "Personnage_EN": "Sakazuki (Akainu)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Logia", "Fruit-du-demon_EN": "Logia", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Sakazuki_Post_Ellipse_Portrait.webp", "Mode-anime": true}, {"ID": "#199", "Personnage_FR": "Sanjuan Wolf", "Personnage_EN": "Sanjuan Wolf", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Noire", "Affiliation_EN": "Blackbeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Sanjuan_Wolf_Portrait.webp", "Mode-anime": true}, {"ID": "#200", "Personnage_FR": "Squard", "Personnage_EN": "Squard", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": 210000000, "Prime_EN": 210000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Squard_Portrait.webp", "Mode-anime": true}, {"ID": "#201", "Personnage_FR": "Vasco Shot", "Personnage_EN": "Vasco Shot", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Noire", "Affiliation_EN": "Blackbeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Vasco_Shot_Portrait.webp", "Mode-anime": true}, {"ID": "#202", "Personnage_FR": "Vista", "Personnage_EN": "Vista", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Barbe Blanche", "Affiliation_EN": "Whitebeard Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Marineford", "Premiere-apparition_EN": "Marineford", "Image": "Vista_Portrait.webp", "Mode-anime": true}, {"ID": "#203", "Personnage_FR": "Dadan", "Personnage_EN": "Dadan", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 7800000, "Prime_EN": 7800000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Post Marineford", "Premiere-apparition_EN": "Post Marineford", "Image": "Curly_Dadan_Portrait.webp", "Mode-anime": true}, {"ID": "#204", "Personnage_FR": "Sabo", "Personnage_EN": "Sabo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Armée révolutionnaire", "Affiliation_EN": "Revolutionary army", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Logia", "Fruit-du-demon_EN": "Logia", "Premiere-apparition_FR": "Post Marineford", "Premiere-apparition_EN": "Post Marineford", "Image": "Sabo_Portrait.webp", "Mode-anime": true}, {"ID": "#205", "Personnage_FR": "Cariboo", "Personnage_EN": "Cariboo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Caribou", "Affiliation_EN": "Cariboo Pirates", "Prime_FR": 210000000, "Prime_EN": 210000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Retour à Sabaody", "Premiere-apparition_EN": "Return to Sabaody", "Image": "Caribou_Portrait.webp", "Mode-anime": true}, {"ID": "#206", "Personnage_FR": "Coriboo", "Personnage_EN": "Koriboo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Caribou", "Affiliation_EN": "Cariboo Pirates", "Prime_FR": 190000000, "Prime_EN": 190000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Retour à Sabaody", "Premiere-apparition_EN": "Return to Sabaody", "Image": "Coribou_Portrait.webp", "Mode-anime": true}, {"ID": "#207", "Personnage_FR": "Fausse Nami", "Personnage_EN": "Fake Nami", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage du faux Chapeau de Paille", "Affiliation_EN": "Fake Straw Hat Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Retour à Sabaody", "Premiere-apparition_EN": "Return to Sabaody", "Image": "Chocolat_Portrait.webp", "Mode-anime": true}, {"ID": "#208", "Personnage_FR": "Fausse Robin", "Personnage_EN": "Fake Robin", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage du faux Chapeau de Paille", "Affiliation_EN": "Fake Straw Hat Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Retour à Sabaody", "Premiere-apparition_EN": "Return to Sabaody", "Image": "Cocoa_Portrait.webp", "Mode-anime": true}, {"ID": "#209", "Personnage_FR": "Faux Chopper", "Personnage_EN": "Fake Chopper", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du faux Chapeau de Paille", "Affiliation_EN": "Fake Straw Hat Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Retour à Sabaody", "Premiere-apparition_EN": "Return to Sabaody", "Image": "Nora_Gitsune_Portrait.webp", "Mode-anime": true}, {"ID": "#210", "Personnage_FR": "Faux Franky", "Personnage_EN": "Fake Franky", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du faux Chapeau de Paille", "Affiliation_EN": "Fake Straw Hat Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Retour à Sabaody", "Premiere-apparition_EN": "Return to Sabaody", "Image": "Turco_Portrait.webp", "Mode-anime": true}, {"ID": "#211", "Personnage_FR": "Faux Luffy", "Personnage_EN": "Fake Luffy", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du faux Chapeau de Paille", "Affiliation_EN": "Fake Straw Hat Pirates", "Prime_FR": 26000000, "Prime_EN": 26000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Retour à Sabaody", "Premiere-apparition_EN": "Return to Sabaody", "Image": "Demalo_Black_Portrait.webp", "Mode-anime": true}, {"ID": "#212", "Personnage_FR": "Faux Sanji", "Personnage_EN": "Fake Sanji", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du faux Chapeau de Paille", "Affiliation_EN": "Fake Straw Hat Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Retour à Sabaody", "Premiere-apparition_EN": "Return to Sabaody", "Image": "Drip_Portrait.webp", "Mode-anime": true}, {"ID": "#213", "Personnage_FR": "Faux Usopp", "Personnage_EN": "Fake Usopp", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du faux Chapeau de Paille", "Affiliation_EN": "Fake Straw Hat Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Retour à Sabaody", "Premiere-apparition_EN": "Return to Sabaody", "Image": "Mounblutain_Portrait.webp", "Mode-anime": true}, {"ID": "#214", "Personnage_FR": "Faux Zoro", "Personnage_EN": "Fake Zoro", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage du faux Chapeau de Paille", "Affiliation_EN": "Fake Straw Hat Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Retour à Sabaody", "Premiere-apparition_EN": "Return to Sabaody", "Image": "Manjaro_Portrait.webp", "Mode-anime": true}, {"ID": "#215", "Personnage_FR": "Aladin", "Personnage_EN": "Aladine", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Pirates du Soleil", "Affiliation_EN": "Sun Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Aladin_Portrait.webp", "Mode-anime": true}, {"ID": "#216", "Personnage_FR": "Baron Tamago", "Personnage_EN": "Baron Tamago", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": 429000000, "Prime_EN": 429000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Tamago_Portrait.webp", "Mode-anime": true}, {"ID": "#217", "Personnage_FR": "Big Mom", "Personnage_EN": "Big Mom", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": 4388000000, "Prime_EN": 4388000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Charlotte_Linlin_Portrait.webp", "Mode-anime": true}, {"ID": "#218", "Personnage_FR": "Daruma", "Personnage_EN": "Daruma", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Nouveaux Hommes-Poissons", "Affiliation_EN": "New Fish-Man Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Daruma_Portrait.webp", "Mode-anime": true}, {"ID": "#219", "Personnage_FR": "Dosun", "Personnage_EN": "Dosun", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Nouveaux Hommes-Poissons", "Affiliation_EN": "New Fish-Man Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Dosun_Portrait.webp", "Mode-anime": true}, {"ID": "#220", "Personnage_FR": "Fisher Tiger", "Personnage_EN": "Fisher Tiger", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Pirates du Soleil", "Affiliation_EN": "Sun Pirates", "Prime_FR": 230000000, "Prime_EN": 230000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Fisher_Tiger_Portrait.webp", "Mode-anime": true}, {"ID": "#221", "Personnage_FR": "Fukaboshi", "Personnage_EN": "Fukaboshi", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Ile des hommes poissons", "Affiliation_EN": "Fish-Man Island", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Fukaboshi_Portrait.webp", "Mode-anime": true}, {"ID": "#222", "Personnage_FR": "Hammond", "Personnage_EN": "Hammond", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Nouveaux Hommes-Poissons", "Affiliation_EN": "New Fish-Man Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Hammond_Portrait.webp", "Mode-anime": true}, {"ID": "#223", "Personnage_FR": "Hody Jones", "Personnage_EN": "Hody Jones", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Nouveaux Hommes-Poissons", "Affiliation_EN": "New Fish-Man Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Hody_Jones_Portrait.webp", "Mode-anime": true}, {"ID": "#224", "Personnage_FR": "Hyouzou", "Personnage_EN": "Hyouzou", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Nouveaux Hommes-Poissons", "Affiliation_EN": "New Fish-Man Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Hyouzou_Portrait.webp", "Mode-anime": true}, {"ID": "#225", "Personnage_FR": "Icaros Mucchi", "Personnage_EN": "Icaros Mucchi", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Nouveaux Hommes-Poissons", "Affiliation_EN": "New Fish-Man Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Icaros_Mucchi_Portrait.webp", "Mode-anime": true}, {"ID": "#226", "Personnage_FR": "Koala", "Personnage_EN": "Koala", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Armée révolutionnaire", "Affiliation_EN": "Revolutionary army", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Koala_Portrait.webp", "Mode-anime": true}, {"ID": "#227", "Personnage_FR": "Madame Shyarly", "Personnage_EN": "Madam Shyarly", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Ile des hommes poissons", "Affiliation_EN": "Fish-Man Island", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Shyarly_Portrait.webp", "Mode-anime": true}, {"ID": "#228", "Personnage_FR": "Manboshi", "Personnage_EN": "Manboshi", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Ile des hommes poissons", "Affiliation_EN": "Fish-Man Island", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Manboshi_Portrait.webp", "Mode-anime": true}, {"ID": "#229", "Personnage_FR": "Neptune", "Personnage_EN": "Neptune", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Ile des hommes poissons", "Affiliation_EN": "Fish-Man Island", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Neptune_Portrait.webp", "Mode-anime": true}, {"ID": "#230", "Personnage_FR": "Pekoms", "Personnage_EN": "Pekoms", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": 330000000, "Prime_EN": 330000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Pekoms_Portrait.webp", "Mode-anime": true}, {"ID": "#231", "Personnage_FR": "Ryuuboshii", "Personnage_EN": "Ryuuboshii", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Ile des hommes poissons", "Affiliation_EN": "Fish-Man Island", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Ryuboshi_Portrait.webp", "Mode-anime": true}, {"ID": "#232", "Personnage_FR": "Shiraoshi", "Personnage_EN": "Shiraoshi", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Ile des hommes poissons", "Affiliation_EN": "Fish-Man Island", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Shirahoshi_Portrait.webp", "Mode-anime": true}, {"ID": "#233", "Personnage_FR": "Surume", "Personnage_EN": "Surume", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Surume_Portrait.webp", "Mode-anime": true}, {"ID": "#234", "Personnage_FR": "Vander Decken", "Personnage_EN": "Van der Decken", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Pirates Volants", "Affiliation_EN": "Flying Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Vander_Decken_IX_Portrait.webp", "Mode-anime": true}, {"ID": "#235", "Personnage_FR": "Wadatsumi", "Personnage_EN": "Wadatsumi", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Pirates du Soleil", "Affiliation_EN": "Sun Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Wadatsumi_Portrait.webp", "Mode-anime": true}, {"ID": "#236", "Personnage_FR": "Zeo", "Personnage_EN": "Zeo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Nouveaux Hommes-Poissons", "Affiliation_EN": "New Fish-Man Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile des hommes poissons", "Premiere-apparition_EN": "Fish-Man Island", "Image": "Zeo_Portrait.webp", "Mode-anime": true}, {"ID": "#237", "Personnage_FR": "Baby 5", "Personnage_EN": "Baby 5", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Punk Hazard", "Premiere-apparition_EN": "Punk Hazard", "Image": "Baby_5_Portrait.webp", "Mode-anime": true}, {"ID": "#238", "Personnage_FR": "Buffalo", "Personnage_EN": "Buffalo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Punk Hazard", "Premiere-apparition_EN": "Punk Hazard", "Image": "Buffalo_Portrait.webp", "Mode-anime": true}, {"ID": "#239", "Personnage_FR": "Cesar Clown", "Personnage_EN": "Caesar Clown", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 300000000, "Prime_EN": 300000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Punk Hazard", "Premiere-apparition_EN": "Punk Hazard", "Image": "Cesar_Clown_Portrait.webp", "Mode-anime": true}, {"ID": "#240", "Personnage_FR": "Kinemon", "Personnage_EN": "Kinemon", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Fourreaux Rouges", "Affiliation_EN": "Red Scabbards", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Punk Hazard", "Premiere-apparition_EN": "Punk Hazard", "Image": "Kinemon_Portrait.webp", "Mode-anime": true}, {"ID": "#241", "Personnage_FR": "Kouzuki Momonosuke", "Personnage_EN": "Kouzuki Momonosuke", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Wano", "Affiliation_EN": "Wano", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Punk Hazard", "Premiere-apparition_EN": "Punk Hazard", "Image": "Kozuki_Momonosuke_Portrait.webp", "Mode-anime": true}, {"ID": "#242", "Personnage_FR": "Monet", "Personnage_EN": "Monet", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Logia", "Fruit-du-demon_EN": "Logia", "Premiere-apparition_FR": "Punk Hazard", "Premiere-apparition_EN": "Punk Hazard", "Image": "Monet_Portrait.webp", "Mode-anime": true}, {"ID": "#243", "Personnage_FR": "Vergo", "Personnage_EN": "Vergo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Punk Hazard", "Premiere-apparition_EN": "Punk Hazard", "Image": "Vergo_Portrait.webp", "Mode-anime": true}, {"ID": "#244", "Personnage_FR": "Abdullah", "Personnage_EN": "Abdullah", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Abdullah_Portrait.webp", "Mode-anime": true}, {"ID": "#245", "Personnage_FR": "Bartolomeo", "Personnage_EN": "Bartolomeo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Barto Club", "Affiliation_EN": "Barto Club", "Prime_FR": 200000000, "Prime_EN": 200000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Bartolomeo_Portrait.webp", "Mode-anime": true}, {"ID": "#246", "Personnage_FR": "Blue Gilly", "Personnage_EN": "Blue Gilly", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Tribu des Longues Jambes", "Affiliation_EN": "Longleg Tribe", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "BlueGilly_Portrait.webp", "Mode-anime": true}, {"ID": "#247", "Personnage_FR": "Bobby Funk", "Personnage_EN": "Bobby Funk", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume de Mogaro", "Affiliation_EN": "Mogaro Kingdom", "Prime_FR": 36000000, "Prime_EN": 36000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "BobbyFunk_Portrait.webp", "Mode-anime": true}, {"ID": "#248", "Personnage_FR": "Boo", "Personnage_EN": "Boo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Chinjao", "Affiliation_EN": "Chinjao familly", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Boo_Portrait.webp", "Mode-anime": true}, {"ID": "#249", "Personnage_FR": "Cavendish", "Personnage_EN": "Cavendish", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage des Magnifiques Pirates", "Affiliation_EN": "Beautiful Pirates", "Prime_FR": 330000000, "Prime_EN": 330000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Cavendish_Portrait.webp", "Mode-anime": true}, {"ID": "#250", "Personnage_FR": "Dagama", "Personnage_EN": "Dagama", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume de Prodence", "Affiliation_EN": "Prodence Kingdom", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Dagama_Portrait.webp", "Mode-anime": true}, {"ID": "#251", "Personnage_FR": "Dellinger", "Personnage_EN": "Dellinger", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Dellinger_Portrait.webp", "Mode-anime": true}, {"ID": "#252", "Personnage_FR": "Diamante", "Personnage_EN": "Diamante", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Diamante_Portrait.webp", "Mode-anime": true}, {"ID": "#253", "Personnage_FR": "Don Chinjao", "Personnage_EN": "Don Chinjao", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Chinjao", "Affiliation_EN": "Chinjao familly", "Prime_FR": 542000000, "Prime_EN": 542000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Chinjao_Portrait.webp", "Mode-anime": true}, {"ID": "#254", "Personnage_FR": "Donquixote Rosinante (Corazon)", "Personnage_EN": "Donquixote Rosinante (Corazon)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Don_Quichotte_Rossinante_Portrait.webp", "Mode-anime": true}, {"ID": "#255", "Personnage_FR": "Elizabello", "Personnage_EN": "Elizabello", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume de Prodence", "Affiliation_EN": "Prodence Kingdom", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Elizabello_II_Portrait.webp", "Mode-anime": true}, {"ID": "#256", "Personnage_FR": "Gatz", "Personnage_EN": "Gatz", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Gatz_Portrait.webp", "Mode-anime": true}, {"ID": "#257", "Personnage_FR": "Giolla", "Personnage_EN": "Giolla", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Jora_Portrait.webp", "Mode-anime": true}, {"ID": "#258", "Personnage_FR": "Gladius", "Personnage_EN": "Gladius", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Gladius_Portrait.webp", "Mode-anime": true}, {"ID": "#259", "Personnage_FR": "Hack", "Personnage_EN": "Hack", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Armée révolutionnaire", "Affiliation_EN": "Revolutionary army", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Hack_Portrait.webp", "Mode-anime": true}, {"ID": "#260", "Personnage_FR": "Hajrudin", "Personnage_EN": "Hajrudin", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Elbaph", "Affiliation_EN": "Elbaph", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Hajrudin_Portrait.webp", "Mode-anime": true}, {"ID": "#261", "Personnage_FR": "Ideo", "Personnage_EN": "Ideo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Tribu des Longs Bras", "Affiliation_EN": "Longarm Tribe", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Ideo_Portrait.webp", "Mode-anime": true}, {"ID": "#262", "Personnage_FR": "Issho (Fujitora)", "Personnage_EN": "Issho (Fujitora)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Issho_Portrait.webp", "Mode-anime": true}, {"ID": "#263", "Personnage_FR": "Jeet", "Personnage_EN": "Jeet", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Jeet_Portrait.webp", "Mode-anime": true}, {"ID": "#264", "Personnage_FR": "Kaido", "Personnage_EN": "Kaido", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage aux Cent Bêtes", "Affiliation_EN": "Beasts Pirates", "Prime_FR": 4611100000, "Prime_EN": 4611100000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Kaidou_Portrait.webp", "Mode-anime": true}, {"ID": "#265", "Personnage_FR": "Kelly Funk", "Personnage_EN": "Kelly Funk", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Royaume de Mogaro", "Affiliation_EN": "Mogaro Kingdom", "Prime_FR": 57000000, "Prime_EN": 57000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Kerry_Funk_Portrait.webp", "Mode-anime": true}, {"ID": "#266", "Personnage_FR": "Kurozumi Kanjuro", "Personnage_EN": "Kurozumi Kanjuro", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Wano", "Affiliation_EN": "Wano", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Kanjuro_Portrait.webp", "Mode-anime": true}, {"ID": "#267", "Personnage_FR": "Kyros", "Personnage_EN": "Kyros", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Riku", "Affiliation_EN": "Riku family", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Kyros_Portrait.webp", "Mode-anime": true}, {"ID": "#268", "Personnage_FR": "Lao G", "Personnage_EN": "Lao G", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Lao_G_Portrait.webp", "Mode-anime": true}, {"ID": "#269", "Personnage_FR": "Leo", "Personnage_EN": "Leo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Tontatta", "Affiliation_EN": "Tontatta", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Lo_Portrait.webp", "Mode-anime": true}, {"ID": "#270", "Personnage_FR": "Machvise", "Personnage_EN": "Machvise", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Machvise_Portrait.webp", "Mode-anime": true}, {"ID": "#271", "Personnage_FR": "Mansherry", "Personnage_EN": "Mansherry", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Tontatta", "Affiliation_EN": "Tontatta", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Mansherry_Portrait.webp", "Mode-anime": true}, {"ID": "#272", "Personnage_FR": "Orlumbus", "Personnage_EN": "Orlumbus", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 148000000, "Prime_EN": 148000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Orlumbus_Portrait.webp", "Mode-anime": true}, {"ID": "#273", "Personnage_FR": "Pica", "Personnage_EN": "Pica", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Pica_Portrait.webp", "Mode-anime": true}, {"ID": "#274", "Personnage_FR": "Rebecca", "Personnage_EN": "Rebecca", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Famille Riku", "Affiliation_EN": "Riku family", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Rebecca_Portrait.webp", "Mode-anime": true}, {"ID": "#275", "Personnage_FR": "Sai", "Personnage_EN": "Sai", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Chinjao", "Affiliation_EN": "Chinjao familly", "Prime_FR": 210000000, "Prime_EN": 210000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Sai_Portrait.webp", "Mode-anime": true}, {"ID": "#276", "Personnage_FR": "Senor Pink", "Personnage_EN": "Senor Pink", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Senor_Pink_Portrait.webp", "Mode-anime": true}, {"ID": "#277", "Personnage_FR": "Sugar", "Personnage_EN": "Sugar", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Sugar_Portrait.webp", "Mode-anime": true}, {"ID": "#278", "Personnage_FR": "Trebol", "Personnage_EN": "Trebol", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Famille Donquixote", "Affiliation_EN": "Donquixote family", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Trbol_Portrait.webp", "Mode-anime": true}, {"ID": "#279", "Personnage_FR": "Viola", "Personnage_EN": "Viola", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Famille Riku", "Affiliation_EN": "Riku family", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Dressrosa", "Premiere-apparition_EN": "Dressrosa", "Image": "Riku_Viola_Portrait.webp", "Mode-anime": true}, {"ID": "#280", "Personnage_FR": "Carrot", "Personnage_EN": "Carrot", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Tribu des Minks", "Affiliation_EN": "Minks Tribe", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Zou", "Premiere-apparition_EN": "Zou", "Image": "Carrot_Portrait.webp", "Mode-anime": true}, {"ID": "#281", "Personnage_FR": "Edward Weeble", "Personnage_EN": "Edward Weevil", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": 480000000, "Prime_EN": 480000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Zou", "Premiere-apparition_EN": "Zou", "Image": "Edward_Weeble_Portrait.webp", "Mode-anime": true}, {"ID": "#282", "Personnage_FR": "Inuarashi", "Personnage_EN": "Inuarashi", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Tribu des Minks", "Affiliation_EN": "Minks Tribe", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Zou", "Premiere-apparition_EN": "Zou", "Image": "Inuarashi_Portrait.webp", "Mode-anime": true}, {"ID": "#283", "Personnage_FR": "Jack", "Personnage_EN": "Jack", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage aux Cent Bêtes", "Affiliation_EN": "Beasts Pirates", "Prime_FR": 1000000000, "Prime_EN": 1000000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Zou", "Premiere-apparition_EN": "Zou", "Image": "Jack_Portrait.webp", "Mode-anime": true}, {"ID": "#284", "Personnage_FR": "Nekomamushi", "Personnage_EN": "Nekomamushi", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Tribu des Minks", "Affiliation_EN": "Minks Tribe", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Zou", "Premiere-apparition_EN": "Zou", "Image": "Nekomamushi_Portrait.webp", "Mode-anime": true}, {"ID": "#285", "Personnage_FR": "Pedro", "Personnage_EN": "Pedro", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Tribu des Minks", "Affiliation_EN": "Minks Tribe", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Zou", "Premiere-apparition_EN": "Zou", "Image": "Pedro_Portrait.webp", "Mode-anime": true}, {"ID": "#286", "Personnage_FR": "Raizo", "Personnage_EN": "Raizo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Fourreaux Rouges", "Affiliation_EN": "Red Scabbards", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Zou", "Premiere-apparition_EN": "Zou", "Image": "Raizo_Portrait.webp", "Mode-anime": true}, {"ID": "#287", "Personnage_FR": "Wanda", "Personnage_EN": "Wanda", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Tribu des Minks", "Affiliation_EN": "Minks Tribe", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Zou", "Premiere-apparition_EN": "Zou", "Image": "Wanda_Portrait.webp", "Mode-anime": true}, {"ID": "#288", "Personnage_FR": "Charlotte Amande", "Personnage_EN": "Charlotte Amande", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Charlotte_Amande_Portrait.webp", "Mode-anime": true}, {"ID": "#289", "Personnage_FR": "Charlotte Brûlée", "Personnage_EN": "Charlotte Brûlée", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Charlotte_Br3Fe_Portrait.webp", "Mode-anime": true}, {"ID": "#290", "Personnage_FR": "Charlotte Cracker", "Personnage_EN": "Charlotte Cracker", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": 860000000, "Prime_EN": 860000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Charlotte_Cracker_Portrait.webp", "Mode-anime": true}, {"ID": "#291", "Personnage_FR": "Charlotte Daifuku", "Personnage_EN": "Charlotte Daifuku", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": 300000000, "Prime_EN": 300000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Charlotte_Daifuku_Portrait.webp", "Mode-anime": true}, {"ID": "#292", "Personnage_FR": "Charlotte Katakuri", "Personnage_EN": "Charlotte Katakuri", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": 1057000000, "Prime_EN": 1057000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Charlotte_Katakuri_Portrait.webp", "Mode-anime": true}, {"ID": "#293", "Personnage_FR": "Charlotte Mont-d'Or", "Personnage_EN": "Charlotte Mont-d'Or", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": 120000000, "Prime_EN": 120000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Charlotte_Mont_dOr_Portrait.webp", "Mode-anime": true}, {"ID": "#294", "Personnage_FR": "Charlotte Oven", "Personnage_EN": "Charlotte Oven", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": 300000000, "Prime_EN": 300000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Charlotte_Oven_Portrait.webp", "Mode-anime": true}, {"ID": "#295", "Personnage_FR": "Charlotte Perospero", "Personnage_EN": "Charlotte Perospero", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": 700000000, "Prime_EN": 700000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Charlotte_Perospero_Portrait.webp", "Mode-anime": true}, {"ID": "#296", "Personnage_FR": "Charlotte Pudding", "Personnage_EN": "Charlotte Pudding", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Charlotte_Pudding_Portrait.webp", "Mode-anime": true}, {"ID": "#297", "Personnage_FR": "Charlotte Smoothie", "Personnage_EN": "Charlotte Smoothie", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage de Big Mom", "Affiliation_EN": "Big Mom Pirates", "Prime_FR": 932000000, "Prime_EN": 932000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Charlotte_Smoothie_Portrait.webp", "Mode-anime": true}, {"ID": "#298", "Personnage_FR": "Morgans", "Personnage_EN": "Morgans", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Morgans_Portrait.webp", "Mode-anime": true}, {"ID": "#299", "Personnage_FR": "Pound", "Personnage_EN": "Pound", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Pound_Portrait.webp", "Mode-anime": true}, {"ID": "#300", "Personnage_FR": "Stussy", "Personnage_EN": "Stussy", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Egghead", "Affiliation_EN": "Egghead", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Stussy_Portrait.webp.webp", "Mode-anime": true}, {"ID": "#301", "Personnage_FR": "Vinsmoke Ichiji", "Personnage_EN": "Vinsmoke Ichiji", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Germa 66", "Affiliation_EN": "Germa 66", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Vinsmoke_Ichiji_Portrait.webp", "Mode-anime": true}, {"ID": "#302", "Personnage_FR": "Vinsmoke Judge", "Personnage_EN": "Vinsmoke Judge", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Germa 66", "Affiliation_EN": "Germa 66", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Vinsmoke_Judge_Portrait.webp", "Mode-anime": true}, {"ID": "#303", "Personnage_FR": "Vinsmoke Niji", "Personnage_EN": "Vinsmoke Niji", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Germa 66", "Affiliation_EN": "Germa 66", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Vinsmoke_Niji_Portrait.webp", "Mode-anime": true}, {"ID": "#304", "Personnage_FR": "Vinsmoke Reiju", "Personnage_EN": "Vinsmoke Reiju", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Germa 66", "Affiliation_EN": "Germa 66", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Vinsmoke_Reiju_Portrait.webp", "Mode-anime": true}, {"ID": "#305", "Personnage_FR": "Vinsmoke Yonji", "Personnage_EN": "Vinsmoke Yonji", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Germa 66", "Affiliation_EN": "Germa 66", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Whole Cake Island", "Premiere-apparition_EN": "Whole Cake Island", "Image": "Vinsmoke_Yonji_Portrait.webp", "Mode-anime": true}, {"ID": "#306", "Personnage_FR": "Bello Betty", "Personnage_EN": "Bello Betty", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Armée révolutionnaire", "Affiliation_EN": "Revolutionary army", "Prime_FR": 457000000, "Prime_EN": 457000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Reverie", "Premiere-apparition_EN": "Levely", "Image": "Belo_Betty_Portrait.webp", "Mode-anime": true}, {"ID": "#307", "Personnage_FR": "Imu", "Personnage_EN": "Imu", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Gouvernement mondial", "Affiliation_EN": "World Government", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Inconnu", "Fruit-du-demon_EN": "Unknown", "Premiere-apparition_FR": "Reverie", "Premiere-apparition_EN": "Levely", "Image": "Imu_Portrait.webp", "Mode-anime": true}, {"ID": "#308", "Personnage_FR": "Karasu", "Personnage_EN": "Karasu", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Armée révolutionnaire", "Affiliation_EN": "Revolutionary army", "Prime_FR": 400000000, "Prime_EN": 400000000, "Fruit-du-demon_FR": "Logia", "Fruit-du-demon_EN": "Logia", "Premiere-apparition_FR": "Reverie", "Premiere-apparition_EN": "Levely", "Image": "Karasu_Portrait.webp", "Mode-anime": true}, {"ID": "#309", "Personnage_FR": "Lindbergh", "Personnage_EN": "Lindbergh", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Armée révolutionnaire", "Affiliation_EN": "Revolutionary army", "Prime_FR": 316000000, "Prime_EN": 316000000, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Reverie", "Premiere-apparition_EN": "Levely", "Image": "Lindbergh_Portrait.webp", "Mode-anime": true}, {"ID": "#310", "Personnage_FR": "Morley", "Personnage_EN": "Morley", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Armée révolutionnaire", "Affiliation_EN": "Revolutionary army", "Prime_FR": 293000000, "Prime_EN": 293000000, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Reverie", "Premiere-apparition_EN": "Levely", "Image": "Morley_Portrait.webp", "Mode-anime": true}, {"ID": "#311", "Personnage_FR": "Aramaki (Ryokugyu)", "Personnage_EN": "Aramaki (Ryokugyu)", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Aramaki_Portrait.webp", "Mode-anime": true}, {"ID": "#312", "Personnage_FR": "Ashura Doji", "Personnage_EN": "Ashura Doji", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Fourreaux Rouges", "Affiliation_EN": "Red Scabbards", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Ashura_Doji_Portrait.webp", "Mode-anime": true}, {"ID": "#313", "Personnage_FR": "Black Maria", "Personnage_EN": "Black Maria", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage aux Cent Bêtes", "Affiliation_EN": "Beasts Pirates", "Prime_FR": 480000000, "Prime_EN": 480000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Black_Maria_Portrait.webp", "Mode-anime": true}, {"ID": "#314", "Personnage_FR": "Daifugo", "Personnage_EN": "Daifugo", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage aux Cent Bêtes", "Affiliation_EN": "Beasts Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Smile", "Fruit-du-demon_EN": "Smile", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Daifugo_Portrait.webp", "Mode-anime": true}, {"ID": "#315", "Personnage_FR": "Denjiro", "Personnage_EN": "Denjiro", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Fourreaux Rouges", "Affiliation_EN": "Red Scabbards", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Denjiro_Portrait.webp", "Mode-anime": true}, {"ID": "#316", "Personnage_FR": "Hyougoro", "Personnage_EN": "Hyougoro", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Wano", "Affiliation_EN": "Wano", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Hyogoro_Portrait.webp", "Mode-anime": true}, {"ID": "#317", "Personnage_FR": "Kawamatsu", "Personnage_EN": "Kawamatsu", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Fourreaux Rouges", "Affiliation_EN": "Red Scabbards", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Kawamatsu_Portrait.webp", "Mode-anime": true}, {"ID": "#318", "Personnage_FR": "Kiku", "Personnage_EN": "Kiku", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Fourreaux Rouges", "Affiliation_EN": "Red Scabbards", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Kikunojo_Portrait.webp", "Mode-anime": true}, {"ID": "#319", "Personnage_FR": "King", "Personnage_EN": "King", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage aux Cent Bêtes", "Affiliation_EN": "Beasts Pirates", "Prime_FR": 1390000000, "Prime_EN": 1390000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Alber_Portrait.webp", "Mode-anime": true}, {"ID": "#320", "Personnage_FR": "Kouzuki Hiyori", "Personnage_EN": "Kouzuki Hiyori", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Wano", "Affiliation_EN": "Wano", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Kozuki_Hiyori_Portrait.webp", "Mode-anime": true}, {"ID": "#321", "Personnage_FR": "Kouzuki Oden", "Personnage_EN": "Kouzuki Oden", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Wano", "Affiliation_EN": "Wano", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Kozuki_Oden_Pirate_Portrait.webp", "Mode-anime": true}, {"ID": "#322", "Personnage_FR": "Kouzuki Sukiyaki", "Personnage_EN": "Kouzuki Sukiyaki", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Wano", "Affiliation_EN": "Wano", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Kozuki_Sukiyaki_Portrait.webp", "Mode-anime": true}, {"ID": "#323", "Personnage_FR": "Kouzuki Toki", "Personnage_EN": "Kouzuki Toki", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Wano", "Affiliation_EN": "Wano", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Kozuki_Toki_Portrait.webp", "Mode-anime": true}, {"ID": "#324", "Personnage_FR": "Kurozumi Orochi", "Personnage_EN": "Kurozumi Orochi", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Wano", "Affiliation_EN": "Wano", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Kurozumi_Orochi_Portrait.webp", "Mode-anime": true}, {"ID": "#325", "Personnage_FR": "Kurozumi Tama", "Personnage_EN": "Kurozumi Tama", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Wano", "Affiliation_EN": "Wano", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Kurozumi_Tama_Portrait.webp", "Mode-anime": true}, {"ID": "#326", "Personnage_FR": "Page One", "Personnage_EN": "Page One", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage aux Cent Bêtes", "Affiliation_EN": "Beasts Pirates", "Prime_FR": 290000000, "Prime_EN": 290000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Page_One_Portrait.webp", "Mode-anime": true}, {"ID": "#327", "Personnage_FR": "Queen", "Personnage_EN": "Queen", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage aux Cent Bêtes", "Affiliation_EN": "Beasts Pirates", "Prime_FR": 1320000000, "Prime_EN": 1320000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Queen_Portrait.webp", "Mode-anime": true}, {"ID": "#328", "Personnage_FR": "Sasaki", "Personnage_EN": "Sasaki", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage aux Cent Bêtes", "Affiliation_EN": "Beasts Pirates", "Prime_FR": 472000000, "Prime_EN": 472000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Sasaki_Portrait.webp", "Mode-anime": true}, {"ID": "#329", "Personnage_FR": "Shinobu", "Personnage_EN": "Shinobu", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Wano", "Affiliation_EN": "Wano", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Shinobu_Portrait.webp", "Mode-anime": true}, {"ID": "#330", "Personnage_FR": "Speed", "Personnage_EN": "Speed", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage aux Cent Bêtes", "Affiliation_EN": "Beasts Pirates", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Smile", "Fruit-du-demon_EN": "Smile", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Speed_Portrait.webp", "Mode-anime": true}, {"ID": "#331", "Personnage_FR": "Ulti", "Personnage_EN": "Ulti", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Équipage aux Cent Bêtes", "Affiliation_EN": "Beasts Pirates", "Prime_FR": 400000000, "Prime_EN": 400000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Ulti_Portrait.webp", "Mode-anime": true}, {"ID": "#332", "Personnage_FR": "Who's-Who", "Personnage_EN": "Who's-Who", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Équipage aux Cent Bêtes", "Affiliation_EN": "Beasts Pirates", "Prime_FR": 546000000, "Prime_EN": 546000000, "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Whos-Who_Portrait.webp", "Mode-anime": true}, {"ID": "#333", "Personnage_FR": "Yamato", "Personnage_EN": "Yamato", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Wano", "Affiliation_EN": "Wano", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Zoan", "Fruit-du-demon_EN": "Zoan", "Premiere-apparition_FR": "Pays des Wa (Wano)", "Premiere-apparition_EN": "Wano country", "Image": "Yamato_Portrait.webp", "Mode-anime": true}, {"ID": "#334", "Personnage_FR": "Atlas", "Personnage_EN": "Atlas", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Egghead", "Affiliation_EN": "Egghead", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Atlas_Portrait.webp", "Mode-anime": true}, {"ID": "#335", "Personnage_FR": "Bluegrass", "Personnage_EN": "Bluegrass", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Bluegrass_Portrait.webp", "Mode-anime": true}, {"ID": "#336", "Personnage_FR": "Colon", "Personnage_EN": "Colon", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Elbaph", "Affiliation_EN": "Elbaph", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Koron_Portrait.webp", "Mode-anime": true}, {"ID": "#337", "Personnage_FR": "Doll", "Personnage_EN": "Doll", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Doll_Portrait.webp", "Mode-anime": true}, {"ID": "#338", "Personnage_FR": "Edison", "Personnage_EN": "Edison", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Egghead", "Affiliation_EN": "Egghead", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Edison_Portrait.webp", "Mode-anime": true}, {"ID": "#339", "Personnage_FR": "Emeth", "Personnage_EN": "Emeth", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Aucune", "Affiliation_EN": "None", "Prime_FR": "Inconnue", "Prime_EN": "Unknown", "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Emeth_Portrait.webp", "Mode-anime": true}, {"ID": "#340", "Personnage_FR": "Guillotine", "Personnage_EN": "Guillotine", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Guillotine_Portrait.webp", "Mode-anime": true}, {"ID": "#341", "Personnage_FR": "Hibari", "Personnage_EN": "Hibari", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Hibari_Portrait.webp", "Mode-anime": true}, {"ID": "#342", "Personnage_FR": "Kujaku", "Personnage_EN": "Kujaku", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Kujaku_Portrait.webp", "Mode-anime": true}, {"ID": "#343", "Personnage_FR": "Lilith", "Personnage_EN": "Lilith", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Egghead", "Affiliation_EN": "Egghead", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Lilith_Portrait.webp", "Mode-anime": true}, {"ID": "#344", "Personnage_FR": "Prince Grus", "Personnage_EN": "Prince Grus", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Prince_Gles_Portrait.webp", "Mode-anime": true}, {"ID": "#345", "Personnage_FR": "Pythagoras", "Personnage_EN": "Pythagoras", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Egghead", "Affiliation_EN": "Egghead", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Pythagore_Portrait.webp", "Mode-anime": true}, {"ID": "#346", "Personnage_FR": "Red King", "Personnage_EN": "Red King", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Red_King_Portrait.webp", "Mode-anime": true}, {"ID": "#347", "Personnage_FR": "Saint Figarland Garling", "Personnage_EN": "Saint Figarland Garling", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Gouvernement mondial", "Affiliation_EN": "World Government", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Inconnu", "Fruit-du-demon_EN": "Unknown", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Saint_Figarland_Garling_Portrait.webp", "Mode-anime": true}, {"ID": "#348", "Personnage_FR": "S-Bear", "Personnage_EN": "S-Bear", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "S-Bear_Portrait.webp", "Mode-anime": true}, {"ID": "#349", "Personnage_FR": "Shaka", "Personnage_EN": "Shaka", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Egghead", "Affiliation_EN": "Egghead", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Shaka_Portrait.webp", "Mode-anime": true}, {"ID": "#350", "Personnage_FR": "S-Hawk", "Personnage_EN": "S-Hawk", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "S-Hawk_Portrait.webp", "Mode-anime": true}, {"ID": "#351", "Personnage_FR": "S-Shark", "Personnage_EN": "S-Shark", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "S-Shark_Portrait.webp", "Mode-anime": true}, {"ID": "#352", "Personnage_FR": "S-Snake", "Personnage_EN": "S-Snake", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "S-Snake_Portrait.webp", "Mode-anime": true}, {"ID": "#353", "Personnage_FR": "Urban", "Personnage_EN": "Urban", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Marine", "Affiliation_EN": "Marine", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Urban_Portrait.webp", "Mode-anime": true}, {"ID": "#354", "Personnage_FR": "Vegapunk", "Personnage_EN": "Vegapunk", "Sexe_FR": "Masculin", "Sexe_EN": "Male", "Affiliation_FR": "Egghead", "Affiliation_EN": "Egghead", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Paramecia", "Fruit-du-demon_EN": "Paramecia", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "Vegapunk_Portrait.webp", "Mode-anime": true}, {"ID": "#355", "Personnage_FR": "York", "Personnage_EN": "York", "Sexe_FR": "Féminin", "Sexe_EN": "Female", "Affiliation_FR": "Egghead", "Affiliation_EN": "Egghead", "Prime_FR": 0, "Prime_EN": 0, "Fruit-du-demon_FR": "Aucun", "Fruit-du-demon_EN": "None", "Premiere-apparition_FR": "Ile d'Egg Head", "Premiere-apparition_EN": "Egghead", "Image": "York_Portrait.webp", "Mode-anime": true}];
+
+    const arcsOrderFR = ["Romance Dawn", "Orange Town", "Village de Sirop", "Baratie", "Arlong Park", "Loguetown", "Reverse Moutain", "Whiskey Peak", "Little Garden", "Royaume de Drum", "Alabasta", "Jaya", "Skypiea", "Long Ring Long Land", "Water Seven", "Enies Lobby", "Post Enies Lobby", "Thriller Bark", "Archipel Sabaody", "Amazon Lily", "Impel Down", "Marineford", "Post Marineford", "Retour à Sabaody", "Ile des hommes poissons", "Punk Hazard", "Dressrosa", "Zou", "Whole Cake Island", "Reverie", "Pays des Wa (Wano)", "Ile d'Egg Head", "Elbaph"];
+    const arcsOrderEN = ["Romance Dawn", "Orange Town", "Syrup Village", "Baratie", "Arlong Park", "Loguetown", "Reverse Moutain", "Whiskey Peak", "Little Garden", "Drum Island", "Alabasta", "Jaya", "Skypiea", "Long Ring Long Land", "Water Seven", "Enies Lobby", "Post Enies Lobby", "Thriller Bark", "Sabaody Archipelago", "Amazon Lily", "Impel Down", "Marineford", "Post Marineford", "Return to Sabaody", "Fish-Man Island", "Punk Hazard", "Dressrosa", "Zou", "Whole Cake Island", "Levely", "Wano country", "Egghead", "Elbaph"];
+
+    const ui = {
+      fr: {
+        title: "One Piece Guess",
+        subtitle: "Devine le personnage du jour. Une case verte = information correcte. Une case rouge = information incorrecte. Les flèches indiquent si la prime ou la première apparition du personnage mystère est plus haute ou plus tardive.",
+        guessLabel: "Choisir un personnage",
+        inputPlaceholder: "Ex. Luffy",
+        validate: "Valider",
+        reset: "Réinitialiser",
+        tries: "Essais",
+        status: "Statut",
+        day: "Jour",
+        inProgress: "En cours",
+        won: "Trouvé !",
+        lost: "Terminé",
+        legendCorrect: "Correct",
+        legendIncorrect: "Incorrect",
+        legendPrime: "Prime : ↑ plus élevée, ↓ plus faible",
+        legendArc: "Première apparition : ↑ plus tard, ↓ plus tôt",
+        footer: "Le personnage du jour est déterminé à partir de la date du jour (fuseau Europe/Paris) et reste identique pour tous les joueurs ce jour-là.",
+        tableHeaders: ["Nom", "Sexe", "Affiliation", "Prime", "Fruit du démon", "Première apparition"],
+        duplicate: "Ce personnage a déjà été joué aujourd'hui.",
+        unknownCharacter: "Personnage introuvable dans la base.",
+        emptyInput: "Choisis un personnage avant de valider.",
+        success: "Bravo ! Tu as trouvé le personnage du jour.",
+        restart: "La partie du jour a été réinitialisée.",
+      },
+      en: {
+        title: "One Piece Guess",
+        subtitle: "Guess the character of the day. A green cell means the information is correct. A red cell means it is incorrect. Arrows show whether the mystery character has a higher bounty or appears earlier/later.",
+        guessLabel: "Choose a character",
+        inputPlaceholder: "e.g. Luffy",
+        validate: "Submit",
+        reset: "Reset",
+        tries: "Attempts",
+        status: "Status",
+        day: "Day",
+        inProgress: "In progress",
+        won: "Found!",
+        lost: "Finished",
+        legendCorrect: "Correct",
+        legendIncorrect: "Incorrect",
+        legendPrime: "Bounty: ↑ higher, ↓ lower",
+        legendArc: "First appearance: ↑ later, ↓ earlier",
+        footer: "The daily character is generated from the current day (Europe/Paris timezone) and is identical for all players on that date.",
+        tableHeaders: ["Name", "Gender", "Affiliation", "Bounty", "Devil Fruit", "First appearance"],
+        duplicate: "This character has already been played today.",
+        unknownCharacter: "Character not found in the database.",
+        emptyInput: "Choose a character before submitting.",
+        success: "Congratulations! You found the daily character.",
+        restart: "Today's game has been reset.",
+      }
+    };
+
+    const IMAGE_BASE_PATH = "./Images/";
+    const FALLBACK_IMAGE = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+        <rect width="80" height="80" rx="14" fill="#EEF2F7"/>
+        <circle cx="40" cy="30" r="14" fill="#CBD5E1"/>
+        <path d="M18 64c3-11 14-18 22-18s19 7 22 18" fill="#CBD5E1"/>
+      </svg>
+    `);
+
+    const els = {
+      title: document.getElementById("title"),
+      subtitle: document.getElementById("subtitle"),
+      langToggle: document.getElementById("langToggle"),
+      guessLabel: document.getElementById("guessLabel"),
+      guessInput: document.getElementById("guessInput"),
+      guessBtn: document.getElementById("guessBtn"),
+      newDayBtn: document.getElementById("newDayBtn"),
+      triesLabel: document.getElementById("triesLabel"),
+      triesValue: document.getElementById("triesValue"),
+      statusLabel: document.getElementById("statusLabel"),
+      statusValue: document.getElementById("statusValue"),
+      dayLabel: document.getElementById("dayLabel"),
+      dayValue: document.getElementById("dayValue"),
+      legendCorrect: document.getElementById("legendCorrect"),
+      legendIncorrect: document.getElementById("legendIncorrect"),
+      legendPrime: document.getElementById("legendPrime"),
+      legendArc: document.getElementById("legendArc"),
+      footerNote: document.getElementById("footerNote"),
+      tableHeadRow: document.getElementById("tableHeadRow"),
+      resultsBody: document.getElementById("resultsBody"),
+      suggestionsBox: document.getElementById("suggestionsBox"),
+      suggestionsHint: document.getElementById("suggestionsHint"),
+      suggestionsList: document.getElementById("suggestionsList"),
+      messageBox: document.getElementById("messageBox"),
+    };
+
+    const state = {
+      isLoggedIn: false,
+      lang: localStorage.getItem("op_guess_lang") || "fr",
+      guesses: [],
+      won: false,
+      filteredSuggestions: [],
+      activeSuggestionIndex: -1,
+    };
+
+    function getParisDayKey() {
+      const formatter = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Paris",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      });
+      return formatter.format(new Date());
+    }
+
+    function getParisDisplayDate() {
+      const formatter = new Intl.DateTimeFormat("fr-FR", {
+        timeZone: "Europe/Paris",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      });
+      return formatter.format(new Date());
+    }
+
+    const GAME_SLOT = 3;
+    const GAME_KEY = "jeu8";
+
+    function createSeededRandom(seedString) {
+      let seed = 0;
+      for (let i = 0; i < seedString.length; i++) {
+        seed = (seed * 31 + seedString.charCodeAt(i)) >>> 0;
+      }
+
+      return function seededRandom() {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        return seed / 4294967296;
+      };
+    }
+
+    function getDailyCharacters(dayKey, count = 4) {
+      const shuffledCharacters = [...characters];
+      const random = createSeededRandom(dayKey);
+
+      for (let i = shuffledCharacters.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [shuffledCharacters[i], shuffledCharacters[j]] = [shuffledCharacters[j], shuffledCharacters[i]];
+      }
+
+      return shuffledCharacters.slice(0, Math.min(count, shuffledCharacters.length));
+    }
+
+    function getDailyCharacter(dayKey) {
+      const dailyCharacters = getDailyCharacters(dayKey, 4);
+      return dailyCharacters[GAME_SLOT] || dailyCharacters[0] || characters[0];
+    }
+
+    function getStorageKey() {
+      return `onepiece_guess__${GAME_KEY}__${getParisDayKey()}`;
+    }
+
+    function parseBounty(value) {
+      if (value === null || value === undefined || value === "") return null;
+      if (typeof value === "number") return value;
+      const cleaned = String(value).replace(/[^\d-]/g, "");
+      if (!cleaned) return null;
+      const n = Number(cleaned);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function compareExact(guessValue, targetValue) {
+      return String(guessValue ?? "").trim().toLowerCase() === String(targetValue ?? "").trim().toLowerCase();
+    }
+
+    function compareBounty(guessValue, targetValue) {
+      if (compareExact(guessValue, targetValue)) {
+        return { isCorrect: true, arrow: "" };
+      }
+      const guessNum = parseBounty(guessValue);
+      const targetNum = parseBounty(targetValue);
+      if (guessNum === null || targetNum === null) {
+        return { isCorrect: false, arrow: "" };
+      }
+      return {
+        isCorrect: false,
+        arrow: targetNum > guessNum ? "↑" : "↓"
+      };
+    }
+
+    function compareAppearance(guessValue, targetValue, lang) {
+      if (compareExact(guessValue, targetValue)) {
+        return { isCorrect: true, arrow: "" };
+      }
+      const order = lang === "fr" ? arcsOrderFR : arcsOrderEN;
+      const guessIndex = order.findIndex(item => item.toLowerCase() === String(guessValue ?? "").trim().toLowerCase());
+      const targetIndex = order.findIndex(item => item.toLowerCase() === String(targetValue ?? "").trim().toLowerCase());
+      if (guessIndex === -1 || targetIndex === -1) {
+        return { isCorrect: false, arrow: "" };
+      }
+      return {
+        isCorrect: false,
+        arrow: targetIndex > guessIndex ? "↑" : "↓"
+      };
+    }
+
+    function getColumns(lang) {
+      if (lang === "fr") {
+        return [
+          { key: "Image", label: "", type: "image" },
+          { key: "Personnage_FR", label: "Nom", type: "exact" },
+          { key: "Sexe_FR", label: "Sexe", type: "exact" },
+          { key: "Affiliation_FR", label: "Affiliation", type: "exact" },
+          { key: "Prime_FR", label: "Prime", type: "bounty" },
+          { key: "Fruit-du-demon_FR", label: "Fruit du démon", type: "exact" },
+          { key: "Premiere-apparition_FR", label: "Première apparition", type: "appearance" },
+        ];
+      }
+      return [
+        { key: "Image", label: "", type: "image" },
+        { key: "Personnage_EN", label: "Name", type: "exact" },
+        { key: "Sexe_EN", label: "Gender", type: "exact" },
+        { key: "Affiliation_EN", label: "Affiliation", type: "exact" },
+        { key: "Prime_EN", label: "Bounty", type: "bounty" },
+        { key: "Fruit-du-demon_EN", label: "Devil Fruit", type: "exact" },
+        { key: "Premiere-apparition_EN", label: "First appearance", type: "appearance" },
+      ];
+    }
+
+    function getCharacterName(char) {
+      return state.lang === "fr" ? char.Personnage_FR : char.Personnage_EN;
+    }
+
+    function normalize(str) {
+      return String(str ?? "").trim().toLowerCase();
+    }
+
+    function findCharacterByInput(input) {
+      const query = normalize(input);
+      const key = state.lang === "fr" ? "Personnage_FR" : "Personnage_EN";
+      return characters.find(c => normalize(c[key]) === query);
+    }
+
+    function showMessage(text, type = "info") {
+      els.messageBox.textContent = text;
+      els.messageBox.className = `message show ${type}`;
+    }
+
+    function hideMessage() {
+      els.messageBox.className = "message";
+      els.messageBox.textContent = "";
+    }
+
+    function buildHead() {
+      const cols = getColumns(state.lang);
+      els.tableHeadRow.innerHTML = cols.map(col => `<th>${col.label}</th>`).join("");
+    }
+
+    function getSuggestionEntries() {
+      const key = state.lang === "fr" ? "Personnage_FR" : "Personnage_EN";
+      const guessedIds = new Set(
+        state.guesses
+          .filter(Boolean)
+          .map(c => c && c.ID !== undefined && c.ID !== null ? String(c.ID) : null)
+          .filter(Boolean)
+      );
+
+      return characters
+        .filter(c => c && c[key])
+        .filter(c => !guessedIds.has(String(c.ID)))
+        .map(c => ({
+          name: c[key],
+          image: c.Image || ""
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, state.lang === "fr" ? "fr" : "en"));
+    }
+
+    function getImageSrc(image) {
+      if (!image) return FALLBACK_IMAGE;
+      const isAbsolute = /^https?:\/\//i.test(image) || image.startsWith("data:") || image.startsWith("/") || image.startsWith("./") || image.startsWith("../");
+      return isAbsolute ? image : IMAGE_BASE_PATH + image;
+    }
+
+    function closeSuggestions() {
+      state.activeSuggestionIndex = -1;
+      els.suggestionsBox.hidden = true;
+      els.guessInput.setAttribute("aria-expanded", "false");
+    }
+
+    function openSuggestions() {
+      els.suggestionsBox.hidden = false;
+      els.guessInput.setAttribute("aria-expanded", "true");
+    }
+
+    function selectSuggestion(name) {
+      const safeName = typeof name === "string" ? name : (name && name.name ? name.name : "");
+      els.guessInput.value = safeName;
+      closeSuggestions();
+      els.guessInput.focus();
+    }
+
+    function renderSuggestions(query = els.guessInput.value.trim()) {
+      const allEntries = getSuggestionEntries();
+      const normalizedQuery = normalize(query);
+
+      const matches = normalizedQuery
+        ? [
+            ...allEntries.filter(entry => normalize(entry.name).startsWith(normalizedQuery)),
+            ...allEntries.filter(entry => {
+              const normalizedName = normalize(entry.name);
+              return !normalizedName.startsWith(normalizedQuery) && normalizedName.includes(normalizedQuery);
+            })
+          ]
+        : allEntries.slice(0, 12);
+
+      state.filteredSuggestions = matches.slice(0, 12);
+      state.activeSuggestionIndex = -1;
+
+      if (!state.filteredSuggestions.length) {
+        els.suggestionsList.innerHTML = `<div class="suggestions-empty">${state.lang === "fr" ? "Aucun personnage trouvé." : "No character found."}</div>`;
+        openSuggestions();
+        return;
+      }
+
+      els.suggestionsList.innerHTML = state.filteredSuggestions.map((entry, index) => `
+        <button type="button" class="suggestion-item" data-index="${index}" data-name="${escapeHtml(entry.name)}" role="option" aria-selected="false">
+          <img src="${getImageSrc(entry.image)}" alt="" onerror="this.onerror=null;this.src=window.FALLBACK_IMAGE;" />
+          <span class="suggestion-name">${escapeHtml(entry.name)}</span>
+        </button>
+      `).join("");
+
+      openSuggestions();
+      window.FALLBACK_IMAGE = FALLBACK_IMAGE;
+    }
+
+    function moveSuggestionSelection(direction) {
+      if (!state.filteredSuggestions.length) return;
+      const max = state.filteredSuggestions.length - 1;
+      state.activeSuggestionIndex = direction > 0
+        ? Math.min(state.activeSuggestionIndex + 1, max)
+        : Math.max(state.activeSuggestionIndex - 1, 0);
+
+      [...els.suggestionsList.querySelectorAll(".suggestion-item")].forEach((btn, index) => {
+        const active = index === state.activeSuggestionIndex;
+        btn.classList.toggle("active", active);
+        btn.setAttribute("aria-selected", active ? "true" : "false");
+        if (active) btn.scrollIntoView({ block: "nearest" });
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function saveState() {
+      const payload = {
+        lang: state.lang,
+        guesses: state.guesses.map(c => c.ID),
+        won: state.won,
+      };
+      localStorage.setItem(getStorageKey(), JSON.stringify(payload));
+      localStorage.setItem("op_guess_lang", state.lang);
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem(getStorageKey());
+      if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        state.won = Boolean(data.won);
+        if (Array.isArray(data.guesses)) {
+          state.guesses = data.guesses
+            .map(id => characters.find(c => c.ID === id))
+            .filter(Boolean);
+        }
+      } catch (e) {
+        console.warn("Unable to load local state", e);
+      }
+    }
+
+    function renderStats() {
+      const copy = ui[state.lang];
+      els.triesValue.textContent = state.guesses.length;
+      els.statusValue.textContent = state.won ? copy.won : copy.inProgress;
+      els.dayValue.textContent = getParisDisplayDate();
+    }
+
+    function getCharacterImageSrc(image) {
+      if (!image) return "";
+      const isAbsolute = /^https?:\/\//i.test(image) || image.startsWith("data:") || image.startsWith("/") || image.startsWith("./") || image.startsWith("../");
+      return isAbsolute ? image : IMAGE_BASE_PATH + image;
+    }
+
+    function getCharacterImageCell(character, displayName) {
+      const initial = escapeHtml((displayName || "?").charAt(0).toUpperCase());
+      const src = getCharacterImageSrc(character && character.Image ? character.Image : "");
+      if (!src) {
+        return `<span class="result-thumb-fallback" aria-hidden="true">${initial}</span>`;
+      }
+      return `<img class="result-thumb" src="${escapeHtml(src)}" alt="${escapeHtml(displayName || "")}" loading="lazy" onerror="this.outerHTML='&lt;span class=&quot;result-thumb-fallback&quot; aria-hidden=&quot;true&quot;&gt;${initial}&lt;/span&gt;';" />`;
+    }
+
+    function formatCellValue(value, type, key) {
+      if (type === "bounty") {
+        if (value === "Inconnue" || value === "Unknown") return value;
+        if (typeof value === "number") return value.toLocaleString("fr-FR");
+      }
+      if (key === "Affiliation_EN" && value === "None") return "None";
+      if (key === "Affiliation_EN" && value === "") return "None";
+      if (key === "Fruit-du-demon_EN" && value === "None") return "None";
+      if (key === "Fruit-du-demon_EN" && value === "") return "None";
+      if (value === null || value === undefined || value === "") return "—";
+      return String(value);
+    }
+
+    function renderRows() {
+      const dailyCharacter = getDailyCharacter(getParisDayKey());
+      const cols = getColumns(state.lang);
+
+      els.resultsBody.innerHTML = state.guesses.map(guess => {
+        const cells = cols.map(col => {
+          const guessValue = guess[col.key] ?? "";
+          const targetValue = dailyCharacter[col.key] ?? "";
+          let result;
+
+          if (col.type === "bounty") {
+            result = compareBounty(guessValue, targetValue);
+          } else if (col.type === "appearance") {
+            result = compareAppearance(guessValue, targetValue, state.lang);
+          } else {
+            result = { isCorrect: compareExact(guessValue, targetValue), arrow: "" };
+          }
+
+          if (col.type === "image") {
+            const displayName = getCharacterName(guess);
+            return `
+              <td>
+                <span class="cell-content">
+                  ${getCharacterImageCell(guess, displayName)}
+                </span>
+              </td>
+            `;
+          }
+
+          const klass = result.isCorrect ? "correct" : "incorrect";
+          const displayValue = formatCellValue(guessValue, col.type, col.key);
+          return `
+            <td class="${klass}">
+              <span class="cell-content">
+                <span>${escapeHtml(displayValue)}</span>
+                ${result.arrow ? `<span class="arrow">${result.arrow}</span>` : ""}
+              </span>
+            </td>
+          `;
+        }).join("");
+
+        return `<tr>${cells}</tr>`;
+      }).join("");
+    }
+
+    
+    function showWinPopup() {
+      const popup = document.getElementById("winPopup");
+      const img = document.getElementById("winPopupImg");
+      if (!popup || !img) return;
+      img.src = state.lang === "fr" ? "./Images/bravo1.png" : "./Images/bravo2.png";
+      popup.hidden = false;
+    }
+
+    function hideWinPopup() {
+      const popup = document.getElementById("winPopup");
+      if (!popup) return;
+      popup.hidden = true;
+    }
+
+    const winPopupEl = document.getElementById("winPopup");
+    if (winPopupEl) {
+      winPopupEl.addEventListener("click", hideWinPopup);
+    }
+
+    
+    
+    function updateLeaderboardLabel() {
+      const btn = document.getElementById("leaderboardBtn");
+      if (!btn) return;
+      btn.textContent = state.lang === "fr" ? "Classement" : "Leaderboard";
+    }
+
+    const leaderboardBtnEl = document.getElementById("leaderboardBtn");
+    if (leaderboardBtnEl) {
+      leaderboardBtnEl.addEventListener("click", (e) => {
+        e.preventDefault();
+        // TODO: redirect later
+      });
+    }
+
+    function updateHomeLabel() {
+      const btn = document.getElementById("homeBtn");
+      if (!btn) return;
+      btn.textContent = state.lang === "fr" ? "Accueil" : "Home";
+    }
+
+    const homeBtnEl = document.getElementById("homeBtn");
+    if (homeBtnEl) {
+      homeBtnEl.addEventListener("click", (e) => {
+        e.preventDefault();
+        // TODO: redirect later
+      });
+    }
+
+    
+    function updateLoginLabel() {
+      const btn = document.getElementById("loginBtn");
+      if (!btn) return;
+      btn.textContent = state.lang === "fr" ? "Connexion" : "Login";
+    }
+
+    const loginBtnEl = document.getElementById("loginBtn");
+    if (loginBtnEl) {
+      loginBtnEl.addEventListener("click", (e) => {
+        e.preventDefault();
+        state.isLoggedIn = !state.isLoggedIn;
+        renderTexts();
+      });
+    }
+
+    
+    function updateLoginLabel() {
+      const btn = document.getElementById("loginBtn");
+      if (!btn) return;
+      if (state.isLoggedIn) {
+        btn.textContent = state.lang === "fr" ? "Mon compte" : "My account";
+      } else {
+        btn.textContent = state.lang === "fr" ? "Connexion" : "Login";
+      }
+    }
+
+    function renderTexts() {
+      updateHomeLabel();
+      updateLeaderboardLabel();
+      updateLoginLabel();
+      const copy = ui[state.lang];
+      document.documentElement.lang = state.lang;
+      if (els.title && els.title.tagName === "IMG") {
+        els.title.alt = copy.title;
+      } else if (els.title && els.title.querySelector) {
+        const titleImg = els.title.querySelector("img");
+        if (titleImg) titleImg.alt = copy.title;
+      } else if (els.title) {
+        els.title.textContent = copy.title;
+      }
+      if (els.subtitle && els.subtitle.querySelector) {
+        const subImg = document.getElementById("subtitleImg");
+        if (subImg) {
+          subImg.src = state.lang === "fr" ? "./Images/jeu8_FR.png" : "./Images/jeu8_EN.png";
+          subImg.alt = copy.subtitle;
+        }
+      } else if (els.subtitle) {
+        els.subtitle.textContent = copy.subtitle;
+      }
+      els.guessLabel.textContent = copy.guessLabel;
+      els.guessInput.placeholder = copy.inputPlaceholder;
+      els.guessBtn.textContent = copy.validate;
+      els.newDayBtn.textContent = copy.reset;
+      els.triesLabel.textContent = copy.tries;
+      els.statusLabel.textContent = copy.status;
+      els.dayLabel.textContent = copy.day;
+      els.legendCorrect.textContent = copy.legendCorrect;
+      els.legendIncorrect.textContent = copy.legendIncorrect;
+      els.legendPrime.textContent = copy.legendPrime;
+      els.legendArc.textContent = copy.legendArc;
+      els.footerNote.textContent = copy.footer;
+      els.langToggle.textContent = state.lang.toUpperCase();
+
+      if (els.messageBox.classList.contains("show")) {
+        if (els.messageBox.classList.contains("success") && state.won) {
+          els.messageBox.textContent = copy.success;
+        } else if (els.messageBox.classList.contains("info")) {
+          const currentText = els.messageBox.textContent.trim();
+          const previousCopy = ui[state.lang === "fr" ? "en" : "fr"];
+          if (currentText === previousCopy.emptyInput) {
+            els.messageBox.textContent = copy.emptyInput;
+          } else if (currentText === previousCopy.unknownCharacter) {
+            els.messageBox.textContent = copy.unknownCharacter;
+          } else if (currentText === previousCopy.duplicate) {
+            els.messageBox.textContent = copy.duplicate;
+          }
+        }
+      }
+
+      buildHead();
+      closeSuggestions();
+      renderStats();
+      renderRows();
+    }
+
+    function resetToday() {
+      localStorage.removeItem(getStorageKey());
+      state.guesses = [];
+      state.won = false;
+      els.guessInput.value = "";
+      closeSuggestions();
+      hideMessage();
+      renderTexts();
+      showMessage(ui[state.lang].restart, "info");
+    }
+
+    function submitGuess() {
+      hideMessage();
+
+      if (state.won) return;
+
+      const input = els.guessInput.value.trim();
+      if (!input) {
+        showMessage(ui[state.lang].emptyInput, "info");
+        return;
+      }
+
+      const found = findCharacterByInput(input);
+      if (!found) {
+        showMessage(ui[state.lang].unknownCharacter, "info");
+        return;
+      }
+
+      if (state.guesses.some(g => g.ID === found.ID)) {
+        showMessage(ui[state.lang].duplicate, "info");
+        return;
+      }
+
+      state.guesses.unshift(found);
+
+      const dailyCharacter = getDailyCharacter(getParisDayKey());
+      const nameKey = state.lang === "fr" ? "Personnage_FR" : "Personnage_EN";
+      if (compareExact(found[nameKey], dailyCharacter[nameKey])) {
+        state.won = true;
+        showWinPopup();
+        showMessage(ui[state.lang].success, "success");
+      }
+
+      els.guessInput.value = "";
+      closeSuggestions();
+      saveState();
+      renderTexts();
+    }
+
+    els.guessBtn.addEventListener("click", submitGuess);
+
+    els.guessInput.addEventListener("input", () => {
+      renderSuggestions();
+    });
+
+    els.guessInput.addEventListener("focus", () => {
+      renderSuggestions();
+    });
+
+    els.guessInput.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        if (els.suggestionsBox.hidden) {
+          renderSuggestions();
+        } else {
+          moveSuggestionSelection(1);
+        }
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        moveSuggestionSelection(-1);
+        return;
+      }
+
+      if (event.key === "Escape") {
+        closeSuggestions();
+        return;
+      }
+
+      if (event.key === "Enter") {
+        event.preventDefault();
+        if (!els.suggestionsBox.hidden && state.activeSuggestionIndex >= 0 && state.filteredSuggestions[state.activeSuggestionIndex]) {
+          selectSuggestion(state.filteredSuggestions[state.activeSuggestionIndex].name);
+          return;
+        }
+        submitGuess();
+      }
+    });
+
+    els.suggestionsList.addEventListener("click", (event) => {
+      const button = event.target.closest(".suggestion-item");
+      if (!button) return;
+      const index = Number(button.dataset.index);
+      const entry = state.filteredSuggestions[index];
+      if (!entry) return;
+      selectSuggestion(entry.name);
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".search-box")) {
+        closeSuggestions();
+      }
+    });
+
+    els.langToggle.addEventListener("click", () => {
+      state.lang = state.lang === "fr" ? "en" : "fr";
+      saveState();
+      renderTexts();
+    });
+    els.newDayBtn.addEventListener("click", resetToday);
+
+    loadState();
+    renderTexts();
+</script>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const translations = {
+    fr: { lang:'FR', home:'Accueil', leaderboard:'Classement', login:'Connexion', account:'Mon compte' },
+    en: { lang:'EN', home:'Home', leaderboard:'Leaderboard', login:'Login', account:'My account' }
+  };
+  window.DOP.updateTopbarLabels(translations);
+});
+</script>
+
+
+<script>
+(function () {
+  const DOP = {
+    getLang() {
+      const urlLang = new URLSearchParams(window.location.search).get('lang');
+      return urlLang || localStorage.getItem('dop_lang') || 'fr';
+    },
+    setLang(lang) {
+      localStorage.setItem('dop_lang', lang);
+    },
+    getUsers() {
+      try { return JSON.parse(localStorage.getItem('dop_users') || '[]'); } catch { return []; }
+    },
+    saveUsers(users) {
+      localStorage.setItem('dop_users', JSON.stringify(users));
+    },
+    getCurrentUser() {
+      try { return JSON.parse(localStorage.getItem('dop_user') || 'null'); } catch { return null; }
+    },
+    setCurrentUser(user) {
+      localStorage.setItem('dop_user', JSON.stringify(user));
+    },
+    clearCurrentUser() {
+      localStorage.removeItem('dop_user');
+    },
+    updateCurrentUserFromStore() {
+      const current = this.getCurrentUser();
+      if (!current) return null;
+      const user = this.getUsers().find(u => u.pseudo === current.pseudo);
+      if (user) {
+        this.setCurrentUser({ pseudo: user.pseudo, email: user.email });
+        return user;
+      }
+      this.clearCurrentUser();
+      return null;
+    },
+    withLang(page, lang) {
+      return `${page}?lang=${encodeURIComponent(lang || this.getLang())}`;
+    },
+    switchPageLang(page) {
+      const params = new URLSearchParams(window.location.search);
+      params.set('lang', page);
+      localStorage.setItem('dop_lang', page);
+      window.location.search = params.toString();
+    },
+    updateTopbarLabels(translations) {
+      const lang = this.getLang();
+      const t = translations[lang] || translations.fr;
+      const user = this.updateCurrentUserFromStore();
+
+      const homeBtn = document.getElementById('homeBtn');
+      const leaderboardBtn = document.getElementById('leaderboardBtn');
+      const loginBtn = document.getElementById('loginBtn');
+      const langToggle = document.getElementById('langToggle');
+
+      if (homeBtn) homeBtn.textContent = t.home;
+      if (leaderboardBtn) leaderboardBtn.textContent = t.leaderboard;
+      if (loginBtn) loginBtn.textContent = user ? t.account : t.login;
+      if (langToggle) langToggle.textContent = t.lang;
+
+      if (homeBtn) {
+        const clone = homeBtn.cloneNode(true);
+        homeBtn.replaceWith(clone);
+        clone.addEventListener('click', () => window.location.href = this.withLang('Homepage.html', lang));
+      }
+      if (leaderboardBtn) {
+        const clone = leaderboardBtn.cloneNode(true);
+        leaderboardBtn.replaceWith(clone);
+        clone.addEventListener('click', () => window.location.href = this.withLang('Leaderboard.html', lang));
+      }
+      if (loginBtn) {
+        const clone = loginBtn.cloneNode(true);
+        loginBtn.replaceWith(clone);
+        clone.addEventListener('click', () => {
+          window.location.href = this.withLang(user ? 'Account.html' : 'Login.html', lang);
+        });
+      }
+      if (langToggle) {
+        const clone = langToggle.cloneNode(true);
+        langToggle.replaceWith(clone);
+        clone.addEventListener('click', () => {
+          const next = lang === 'fr' ? 'en' : 'fr';
+          this.setLang(next);
+          const params = new URLSearchParams(window.location.search);
+          params.set('lang', next);
+          window.location.search = params.toString();
+        });
+      }
+    }
+  };
+  window.DOP = DOP;
+})();
+</script>
+
+</body>
+</html>
