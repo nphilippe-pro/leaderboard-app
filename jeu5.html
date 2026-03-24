@@ -641,6 +641,8 @@
       filteredSuggestions: [],
       activeSuggestionIndex: -1,
       pointsSubmitted: false,
+      sessionRecorded: false,
+      accessChecked: false,
     };
 
     function getParisDayKey() {
@@ -902,6 +904,7 @@
         guesses: state.guesses.map(c => c.ID),
         won: state.won,
         pointsSubmitted: state.pointsSubmitted,
+        sessionRecorded: state.sessionRecorded,
       };
       localStorage.setItem(getStorageKey(), JSON.stringify(payload));
       localStorage.setItem("op_guess_lang", state.lang);
@@ -916,6 +919,7 @@
         const data = JSON.parse(raw);
         state.won = Boolean(data.won);
         state.pointsSubmitted = Boolean(data.pointsSubmitted);
+        state.sessionRecorded = Boolean(data.sessionRecorded);
         if (Array.isArray(data.guesses)) {
           state.guesses = data.guesses
             .map(id => characters.find(c => c.ID === id))
@@ -1008,12 +1012,55 @@
 
     
 
+
+    async function checkAccessForCurrentGame() {
+      if (state.accessChecked) return true;
+      if (!window.GameSessionManager) return true;
+
+      try {
+        const result = await window.GameSessionManager.canPlayGame("jeu5");
+        if (!result.allowed) {
+          if (result.reason === "not_logged_in") {
+            alert(state.lang === "fr" ? "Tu dois être connecté pour jouer." : "You must be logged in to play.");
+          } else {
+            alert(state.lang === "fr" ? "Tu as déjà atteint la limite du jour ou choisi l'autre mode." : "You already reached today's limit or selected the other mode.");
+          }
+          window.location.href = state.lang === "fr" ? "Homepage.html?lang=fr" : "Homepage.html?lang=en";
+          return false;
+        }
+        state.accessChecked = true;
+        return true;
+      } catch (error) {
+        console.error("Access check failed", error);
+        alert(state.lang === "fr" ? "Erreur lors de la vérification d'accès." : "Error while checking access.");
+        window.location.href = state.lang === "fr" ? "Homepage.html?lang=fr" : "Homepage.html?lang=en";
+        return false;
+      }
+    }
+
+    async function recordCurrentGameSession() {
+      if (state.sessionRecorded) return null;
+      if (!window.GameSessionManager) return null;
+
+      try {
+        const result = await window.GameSessionManager.recordGameSession("jeu5", state.guesses.length);
+        if (result && result.ok) {
+          state.sessionRecorded = true;
+          saveState();
+        }
+        return result;
+      } catch (error) {
+        console.error("Game session save failed", error);
+        return { ok:false, error:error.message || "Save failed" };
+      }
+    }
+
     async function awardPointsForCurrentGame() {
       if (state.pointsSubmitted) return null;
       if (!window.DOPPoints || typeof window.DOPPoints.submitGameScore !== "function") return null;
 
       try {
-        const result = await window.DOPPoints.submitGameScore(GAME_KEY, state.guesses.length);
+        return { skipped: true, reason: "disabled_legacy_scoring", pointsAwarded: 0 };
         state.pointsSubmitted = true;
         saveState();
         return result;
@@ -1200,14 +1247,25 @@
         showWinPopup();
 
         let successMessage = ui[state.lang].success;
+        const sessionResult = await recordCurrentGameSession();
         const scoreResult = await awardPointsForCurrentGame();
 
+        if (sessionResult && sessionResult.ok) {
+          successMessage += state.lang === "fr"
+            ? ` (+${sessionResult.points} points)`
+            : ` (+${sessionResult.points} points)`;
+        } else if (sessionResult && sessionResult.reason === "insert_error") {
+          successMessage += state.lang === "fr"
+            ? " (partie déjà comptabilisée aujourd'hui)"
+            : " (game already counted today)";
+        } else if (sessionResult && sessionResult.error) {
+          successMessage += state.lang === "fr"
+            ? " (erreur d'enregistrement de la partie)"
+            : " (game save error)";
+        }
+
         if (scoreResult && !scoreResult.skipped) {
-          if (scoreResult.accepted) {
-            successMessage += state.lang === "fr"
-              ? ` (+${scoreResult.pointsAwarded} points)`
-              : ` (+${scoreResult.pointsAwarded} points)`;
-          } else if (scoreResult.alreadyPlayed) {
+          if (scoreResult.alreadyPlayed) {
             successMessage += state.lang === "fr"
               ? " (score déjà comptabilisé aujourd'hui)"
               : " (score already counted today)";
@@ -1296,7 +1354,9 @@
     els.newDayBtn.addEventListener("click", resetToday);
 
     loadState();
-    renderTexts();
+    checkAccessForCurrentGame().then((ok) => {
+      if (ok) renderTexts();
+    });
 </script>
 
 
@@ -1409,5 +1469,8 @@ document.addEventListener('DOMContentLoaded', () => {
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./game_points_helper.js"></script>
   <script src="./site_footer_cookies.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./game_session_manager.js"></script>
 </body>
 </html>
