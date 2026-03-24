@@ -41,6 +41,7 @@
         <div>
           <h2 id="leaderboardTitle" style="margin:0 0 6px;">Classement</h2>
           <div class="muted" id="leaderboardSubtitle">100 joueurs maximum par page. Seuls les comptes créés apparaissent.</div>
+          <div class="muted" id="leaderboardPointsInfo" style="margin-top:12px; font-size:14px; opacity:0.9;">1 à 3 tentatives = 100 points / 4 tentatives = 90 points / 5 tentatives = 80 points / 6 tentatives = 70 points / 7 tentatives = 60 points / 8 tentatives = 50 points / 9 tentatives = 40 points / 10 tentatives = 30 points / 11 tentatives = 20 points / 12 tentatives = 10 points / 13 tentatives = 5 points / 14 tentatives = 3 points / 15 tentatives = 2 points / 16 tentatives = 1 point</div>
         </div>
         <div class="muted" id="playerCountLabel">0 joueur affiché</div>
       </div>
@@ -60,8 +61,8 @@
   <script>
   document.addEventListener('DOMContentLoaded', () => {
     const translations = {
-      fr: { lang:'FR', home:'Accueil', leaderboard:'Classement', login:'Connexion', account:'Mon compte', title:'Classement', subtitle:'100 joueurs maximum par page. Seuls les comptes créés apparaissent.', position:'Position', pseudo:'Pseudo', score:'Score', prev:'Précédent', next:'Suivant', page:'Page', displayed:(n)=>`${n} joueur${n>1?'s':''} affiché${n>1?'s':''}`, htmlLang:'fr' },
-      en: { lang:'EN', home:'Home', leaderboard:'Leaderboard', login:'Login', account:'My account', title:'Leaderboard', subtitle:'Up to 100 players per page. Only registered players are displayed.', position:'Rank', pseudo:'Username', score:'Score', prev:'Previous', next:'Next', page:'Page', displayed:(n)=>`${n} player${n>1?'s':''} displayed`, htmlLang:'en' }
+      fr: { lang:'FR', home:'Accueil', leaderboard:'Classement', login:'Connexion', account:'Mon compte', title:'Classement', subtitle:'100 joueurs maximum par page. Seuls les comptes créés apparaissent.', pointsInfo:'1 à 3 tentatives = 100 points / 4 tentatives = 90 points / 5 tentatives = 80 points / 6 tentatives = 70 points / 7 tentatives = 60 points / 8 tentatives = 50 points / 9 tentatives = 40 points / 10 tentatives = 30 points / 11 tentatives = 20 points / 12 tentatives = 10 points / 13 tentatives = 5 points / 14 tentatives = 3 points / 15 tentatives = 2 points / 16 tentatives = 1 point', position:'Position', pseudo:'Pseudo', score:'Score', prev:'Précédent', next:'Suivant', page:'Page', displayed:(n)=>`${n} joueur${n>1?'s':''} affiché${n>1?'s':''}`, htmlLang:'fr' },
+      en: { lang:'EN', home:'Home', leaderboard:'Leaderboard', login:'Login', account:'My account', title:'Leaderboard', subtitle:'100 players maximum per page. Only registered accounts appear.', pointsInfo:'1 to 3 attempts = 100 points / 4 attempts = 90 points / 5 attempts = 80 points / 6 attempts = 70 points / 7 attempts = 60 points / 8 attempts = 50 points / 9 attempts = 40 points / 10 attempts = 30 points / 11 attempts = 20 points / 12 attempts = 10 points / 13 attempts = 5 points / 14 attempts = 3 points / 15 attempts = 2 points / 16 attempts = 1 point', position:'Rank', pseudo:'Username', score:'Score', prev:'Previous', next:'Next', page:'Page', displayed:(n)=>`${n} player${n>1?'s':''} displayed`, htmlLang:'en' }
     };
     let currentPage = parseInt(new URLSearchParams(location.search).get('page') || '1', 10);
     const pageSize = 100;
@@ -71,6 +72,7 @@
     window.DOP.updateTopbarLabels(translations);
     document.getElementById('leaderboardTitle').textContent = t.title;
     document.getElementById('leaderboardSubtitle').textContent = t.subtitle;
+    document.getElementById('leaderboardPointsInfo').textContent = t.pointsInfo;
     document.getElementById('positionHeader').textContent = t.position;
     document.getElementById('pseudoHeader').textContent = t.pseudo;
     document.getElementById('scoreHeader').textContent = t.score;
@@ -185,5 +187,6 @@
 })();
 </script>
 
+  <script src="./site_footer_cookies.js"></script>
 </body>
 </html>

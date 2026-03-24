@@ -466,7 +466,7 @@
       </div>
       <div class="toolbar">
         
-        <button class="secondary" id="newDayBtn" title="Réinitialise seulement la partie du jour">Réinitialiser</button>
+        
       </div>
     </div>
 
@@ -624,13 +624,23 @@
       messageBox: document.getElementById("messageBox"),
     };
 
+        function getInitialLang() {
+      const params = new URLSearchParams(window.location.search);
+      const queryLang = params.get("lang");
+      const savedLang = localStorage.getItem("dop_lang");
+      const legacyLang = localStorage.getItem("op_guess_lang");
+      const lang = queryLang || savedLang || legacyLang || "fr";
+      return lang === "en" ? "en" : "fr";
+    }
+
     const state = {
       isLoggedIn: false,
-      lang: localStorage.getItem("op_guess_lang") || "fr",
+      lang: getInitialLang(),
       guesses: [],
       won: false,
       filteredSuggestions: [],
       activeSuggestionIndex: -1,
+      pointsSubmitted: false,
     };
 
     function getParisDayKey() {
@@ -891,9 +901,12 @@
         lang: state.lang,
         guesses: state.guesses.map(c => c.ID),
         won: state.won,
+        pointsSubmitted: state.pointsSubmitted,
       };
       localStorage.setItem(getStorageKey(), JSON.stringify(payload));
       localStorage.setItem("op_guess_lang", state.lang);
+      localStorage.setItem("dop_lang", state.lang);
+      localStorage.setItem("dop_lang", state.lang);
     }
 
     function loadState() {
@@ -902,6 +915,7 @@
       try {
         const data = JSON.parse(raw);
         state.won = Boolean(data.won);
+        state.pointsSubmitted = Boolean(data.pointsSubmitted);
         if (Array.isArray(data.guesses)) {
           state.guesses = data.guesses
             .map(id => characters.find(c => c.ID === id))
@@ -993,6 +1007,22 @@
     }
 
     
+
+    async function awardPointsForCurrentGame() {
+      if (state.pointsSubmitted) return null;
+      if (!window.DOPPoints || typeof window.DOPPoints.submitGameScore !== "function") return null;
+
+      try {
+        const result = await window.DOPPoints.submitGameScore(GAME_KEY, state.guesses.length);
+        state.pointsSubmitted = true;
+        saveState();
+        return result;
+      } catch (error) {
+        console.error("Score submission failed", error);
+        return { error: error.message || "Score submission failed" };
+      }
+    }
+
     function showWinPopup() {
       const popup = document.getElementById("winPopup");
       const img = document.getElementById("winPopupImg");
@@ -1139,7 +1169,7 @@
       showMessage(ui[state.lang].restart, "info");
     }
 
-    function submitGuess() {
+    async function submitGuess() {
       hideMessage();
 
       if (state.won) return;
@@ -1168,7 +1198,27 @@
       if (compareExact(found[nameKey], dailyCharacter[nameKey])) {
         state.won = true;
         showWinPopup();
-        showMessage(ui[state.lang].success, "success");
+
+        let successMessage = ui[state.lang].success;
+        const scoreResult = await awardPointsForCurrentGame();
+
+        if (scoreResult && !scoreResult.skipped) {
+          if (scoreResult.accepted) {
+            successMessage += state.lang === "fr"
+              ? ` (+${scoreResult.pointsAwarded} points)`
+              : ` (+${scoreResult.pointsAwarded} points)`;
+          } else if (scoreResult.alreadyPlayed) {
+            successMessage += state.lang === "fr"
+              ? " (score déjà comptabilisé aujourd'hui)"
+              : " (score already counted today)";
+          } else if (scoreResult.error) {
+            successMessage += state.lang === "fr"
+              ? " (erreur d'enregistrement du score)"
+              : " (score save error)";
+          }
+        }
+
+        showMessage(successMessage, "success");
       }
 
       els.guessInput.value = "";
@@ -1236,8 +1286,12 @@
 
     els.langToggle.addEventListener("click", () => {
       state.lang = state.lang === "fr" ? "en" : "fr";
-      saveState();
-      renderTexts();
+      localStorage.setItem("op_guess_lang", state.lang);
+      localStorage.setItem("dop_lang", state.lang);
+      localStorage.setItem("dop_lang", state.lang);
+      const params = new URLSearchParams(window.location.search);
+      params.set("lang", state.lang);
+      window.location.search = params.toString();
     });
     els.newDayBtn.addEventListener("click", resetToday);
 
@@ -1352,5 +1406,8 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./game_points_helper.js"></script>
+  <script src="./site_footer_cookies.js"></script>
 </body>
 </html>

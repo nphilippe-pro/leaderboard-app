@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily One Piece - Terms of Use</title>
+<style>
+body {
+  margin:0;
+  font-family:Inter,system-ui,sans-serif;
+  background:radial-gradient(circle at top, rgba(37,99,235,.18), transparent 40%), linear-gradient(180deg, #0b1120 0%, #0f172a 100%);
+  color:#f8fafc;
+}
+.topbar {
+  width:100%;
+  background:rgba(17,24,39,0.95);
+  border-bottom:1px solid rgba(255,255,255,.12);
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 0 8px rgba(37,99,235,.35);
+}
+.topbar-inner {
+  max-width:1100px;
+  margin:0 auto;
+  padding:10px 16px;
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+button {
+  border:0;
+  border-radius:12px;
+  padding:10px 16px;
+  font-weight:700;
+  cursor:pointer;
+}
+.ghost {
+  background:rgba(255,255,255,.06);
+  color:#f8fafc;
+  border:1px solid rgba(255,255,255,.08);
+}
+.topbar-actions {
+  margin-left:auto;
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+.container {
+  max-width:960px;
+  margin:40px auto;
+  padding:0 16px 48px;
+}
+.card {
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  padding:24px;
+  box-shadow:0 12px 30px rgba(0,0,0,.18);
+}
+h1, h2 { color:#93c5fd; }
+p, li {
+  color:rgba(248,250,252,.88);
+  line-height:1.7;
+}
+.small { color:rgba(248,250,252,.72); }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <button class="ghost" id="homeBtn">Home</button>
+    <button class="ghost" id="leaderboardBtn">Leaderboard</button>
+    <div class="topbar-actions">
+      <button class="ghost" id="loginBtn">Login</button>
+      <button class="ghost" id="langToggle">EN</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h1>Terms of Use</h1>
+    <p class="small">Last updated: March 24, 2026</p>
+    <p>Rules governing the use of the Daily One Piece website.</p>
+    <h2>Access to the site</h2>
+    <p>The website is freely accessible to users with an internet connection. Temporary interruptions may occur for maintenance or updates.</p>
+<h2>User account</h2>
+    <p>Users are responsible for the confidentiality of their credentials and for actions carried out through their account.</p>
+<h2>Use of the service</h2>
+    <p>Any attempt to cheat, abuse, disrupt the service or bypass game rules may result in account suspension or loss of access.</p>
+<h2>Leaderboard</h2>
+    <p>The leaderboard is based on cumulative scores according to the scoring rules published on the website. Scoring mechanisms may evolve to preserve fairness.</p>
+<h2>Liability</h2>
+    <p>The publisher cannot be held liable for malfunctions, service interruptions, data loss or indirect damages related to website use.</p>
+<h2>Changes</h2>
+    <p>These legal notices and terms of use may be modified at any time. The online version prevails.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  function getUser() {
+    try { return JSON.parse(localStorage.getItem('dop_user') || 'null'); } catch { return null; }
+  }
+  function withLang(page, lang) {
+    return page + '?lang=' + encodeURIComponent(lang);
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    const user = getUser();
+    document.getElementById('homeBtn').onclick = () => window.location.href = withLang('Homepage.html', 'en');
+    document.getElementById('leaderboardBtn').onclick = () => window.location.href = withLang('Leaderboard.html', 'en');
+    document.getElementById('loginBtn').textContent = user ? 'My account' : 'Login';
+    document.getElementById('loginBtn').onclick = () => window.location.href = withLang(user ? 'Account.html' : 'Login.html', 'en');
+    document.getElementById('langToggle').onclick = () => window.location.href = withLang('Terms.html', 'fr');
+  });
+})();
+</script>
+<script src="./site_footer_cookies.js"></script>
+</body>
+</html>

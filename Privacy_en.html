@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily One Piece - Privacy Policy</title>
+<style>
+body { margin:0; font-family:Inter,system-ui,sans-serif; background:radial-gradient(circle at top, rgba(37,99,235,.18), transparent 40%), linear-gradient(180deg, #0b1120 0%, #0f172a 100%); color:#f8fafc; min-height:100vh; }
+.topbar { width:100%; background:rgba(17,24,39,0.95); border-bottom:1px solid rgba(255,255,255,.12); box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 0 8px rgba(37,99,235,.35); }
+.topbar-inner { max-width:1100px; margin:0 auto; padding:10px 16px; display:flex; gap:12px; align-items:center; }
+button { border:0; border-radius:12px; padding:10px 16px; font-weight:700; cursor:pointer; }
+.ghost { background:rgba(255,255,255,.06); color:#f8fafc; border:1px solid rgba(255,255,255,.08); }
+.topbar-actions { margin-left:auto; display:flex; gap:12px; align-items:center; }
+.container { max-width:960px; margin:40px auto; padding:0 16px 48px; }
+.card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:24px; box-shadow:0 12px 30px rgba(0,0,0,.18); }
+h1, h2 { color:#93c5fd; }
+p, li { color:rgba(248,250,252,.88); line-height:1.7; }
+ul { padding-left:20px; }
+a { color:#93c5fd; }
+.small { color:rgba(248,250,252,.72); }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <button class="ghost" id="homeBtn">Home</button>
+    <button class="ghost" id="leaderboardBtn">Leaderboard</button>
+    <div class="topbar-actions">
+      <button class="ghost" id="loginBtn">Login</button>
+      <button class="ghost" id="langToggle">EN</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h1>Privacy Policy</h1>
+    <p class="small">Last updated: March 24, 2026</p>
+
+    <h2>1. Data controller</h2>
+    <p>Daily One Piece is accessible through the dailyonepiece.com domain. For any question related to personal data protection, you can contact: <strong>contact@dailyonepiece.com</strong>.</p>
+
+    <h2>2. Data collected</h2>
+    <p>When you use the site, we may collect the following data:</p>
+    <ul>
+      <li>email address;</li>
+      <li>username;</li>
+      <li>encrypted password and session information through the authentication provider;</li>
+      <li>score, game history, gameplay statistics and leaderboard information;</li>
+      <li>technical browsing data such as IP address, browser, device used and connection logs;</li>
+      <li>data related to cookies and similar technologies.</li>
+    </ul>
+
+    <h2>3. Purpose of processing</h2>
+    <p>Your data is used to:</p>
+    <ul>
+      <li>create and manage your account;</li>
+      <li>sign you in and secure access to the site;</li>
+      <li>calculate your points and display the leaderboard;</li>
+      <li>ensure proper website operation;</li>
+      <li>prevent fraud, cheating and abuse;</li>
+      <li>measure traffic and improve user experience;</li>
+      <li>display, in the future, personalized or non-personalized advertising.</li>
+    </ul>
+
+    <h2>4. Legal basis</h2>
+    <p>Processing is based, depending on the case, on the performance of the requested service, compliance with legal obligations, the site's legitimate interest in securing its operation, and your consent for non-essential cookies, especially advertising cookies.</p>
+
+    <h2>5. Advertising and cookies</h2>
+    <p>The site may integrate advertising partners such as ad networks. These partners may use cookies or similar technologies to:</p>
+    <ul>
+      <li>display ads;</li>
+      <li>limit ad repetition;</li>
+      <li>measure campaign performance;</li>
+      <li>personalize ads when you consent to this.</li>
+    </ul>
+    <p>Strictly necessary cookies may be stored without consent. Non-essential analytics cookies and advertising cookies require your choice through the cookie banner.</p>
+
+    <h2>6. Data recipients</h2>
+    <p>Data may be processed by technical service providers used by the site, including:</p>
+    <ul>
+      <li>hosting and deployment providers;</li>
+      <li>database and authentication providers;</li>
+      <li>traffic and analytics tools;</li>
+      <li>future advertising partners.</li>
+    </ul>
+
+    <h2>7. Retention period</h2>
+    <p>Account data is kept as long as the account remains active, then for the period required to comply with legal obligations or manage disputes. Cookie data is stored according to its purpose and applicable regulations.</p>
+
+    <h2>8. Security</h2>
+    <p>Reasonable technical and organizational measures are implemented to protect data against unauthorized access, loss, alteration or disclosure.</p>
+
+    <h2>9. Your rights</h2>
+    <p>Under the GDPR, you may request:</p>
+    <ul>
+      <li>access to your data;</li>
+      <li>correction of your data;</li>
+      <li>deletion of your data;</li>
+      <li>restriction of or objection to certain processing activities;</li>
+      <li>withdrawal of your consent when processing relies on it.</li>
+    </ul>
+    <p>To exercise your rights, contact: <strong>contact@dailyonepiece.com</strong>.</p>
+
+    <h2>10. Contact</h2>
+    <p>For any question related to this privacy policy or your personal data, you can contact us at: <strong>contact@dailyonepiece.com</strong>.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  function getLang() {
+    const q = new URLSearchParams(window.location.search).get('lang');
+    return q || localStorage.getItem('dop_lang') || 'en';
+  }
+  function getUser() {
+    try { return JSON.parse(localStorage.getItem('dop_user') || 'null'); } catch { return null; }
+  }
+  function go(page, lang) { window.location.href = page + '?lang=' + encodeURIComponent(lang); }
+  document.addEventListener('DOMContentLoaded', function () {
+    const lang = getLang();
+    localStorage.setItem('dop_lang', lang);
+    const user = getUser();
+    document.getElementById('homeBtn').onclick = () => go('Homepage.html', lang);
+    document.getElementById('leaderboardBtn').onclick = () => go('Leaderboard.html', lang);
+    document.getElementById('loginBtn').textContent = user ? 'My account' : 'Login';
+    document.getElementById('loginBtn').onclick = () => go(user ? 'Account.html' : 'Login.html', lang);
+    document.getElementById('langToggle').textContent = 'EN';
+    document.getElementById('langToggle').onclick = () => go('Privacy.html', 'fr');
+  });
+})();
+</script>
+<script src="./site_footer_cookies.js"></script>
+</body>
+</html>
