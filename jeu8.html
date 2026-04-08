@@ -902,6 +902,8 @@
         .replaceAll("'", "&#39;");
     }
 
+    window.state = state;
+
     function saveState() {
       const payload = {
         lang: state.lang,
@@ -914,6 +916,7 @@
       localStorage.setItem("op_guess_lang", state.lang);
       localStorage.setItem("dop_lang", state.lang);
     }
+    window.saveState = saveState;
 
     function loadState() {
       const raw = localStorage.getItem(getStorageKey());

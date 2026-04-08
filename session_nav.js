@@ -122,7 +122,17 @@
         langToggle.textContent = t.lang;
         langToggle.onclick = () => {
           const next = lang === 'fr' ? 'en' : 'fr';
+          try {
+            if (typeof window.saveState === 'function' && typeof window.state !== 'undefined') {
+              window.state.lang = next;
+              window.saveState();
+            } else if (typeof saveState === 'function' && typeof state !== 'undefined') {
+              state.lang = next;
+              saveState();
+            }
+          } catch (e) {}
           localStorage.setItem('dop_lang', next);
+          localStorage.setItem('op_guess_lang', next);
           const params = new URLSearchParams(window.location.search);
           params.set('lang', next);
           window.location.search = params.toString();
