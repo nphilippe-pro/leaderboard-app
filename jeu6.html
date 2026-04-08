@@ -234,7 +234,6 @@
       line-height: 1.5;
     }
 
-    
     .search-wrap {
       position: relative;
       z-index: 6000;
@@ -308,7 +307,6 @@
       font-size: 0.95rem;
     }
 
-
     .result-thumb {
       width: 56px;
       height: 56px;
@@ -334,12 +332,10 @@
       margin: 0 auto;
     }
 
-
     th:first-child {
       width: 84px;
     }
 
-    
 .win-popup {
   position: fixed;
   inset: 0;
@@ -363,7 +359,6 @@
   display: block;
 }
 
-
 .title-image {
   width: 100%;
   display: flex;
@@ -375,7 +370,6 @@
   max-width: 100%;
   height: auto;
 }
-
 
     .title-image {
   width: 100%;
@@ -391,7 +385,6 @@
       height: auto;
     }
 
-
     .subtitle-image {
   width: 100%;
   display: flex;
@@ -405,10 +398,6 @@
       max-width: 360px;
       height: auto;
     }
-
-
-    
-
 
     .topbar {
       width: 100%;
@@ -429,7 +418,7 @@
     .topbar-inner #langToggle {
       margin-left: auto;
     }
-    
+
     .topbar-spacer {
       flex: 1;
     }
@@ -446,44 +435,27 @@
   
 /* MOBILE OPTIMIZATION */
 @media (max-width: 768px) {
-
-  .topbar {
-    flex-direction: column !important;
-    gap: 10px;
-    padding: 10px;
-  }
-
-  .topbar-left, .topbar-right {
-    width: 100%;
-    display: flex;
+  .topbar-inner {
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 10px;
   }
-
-  .card, .container, .box {
-    width: 90% !important;
-    margin: 10px auto !important;
+  .topbar-actions {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0 !important;
   }
-
+  .container, .card, .panel, .controls, .stat-card {
+    width: min(100% - 20px, 1100px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
   input, button {
-    width: 100% !important;
     font-size: 16px !important;
   }
-
   table {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
-  }
-
-  h1, h2 {
-    text-align: center;
-  }
-
-  .footer {
-    font-size: 12px;
-    text-align: center;
-    padding: 10px;
   }
 }
 
@@ -494,9 +466,9 @@
   <div class="topbar">
     <div class="topbar-inner">
       <button class="ghost" id="homeBtn">Accueil</button>
-      <button class="ghost" id="leaderboardBtn">Classement</button>
+
       <div style="margin-left:auto; display:flex; gap:10px;">
-        <button class="ghost" id="loginBtn">Connexion</button>
+
         <button class="ghost" id="langToggle">FR</button>
     </div>
   </div>
@@ -509,8 +481,7 @@
         <div id="subtitle" class="subtitle-image"><img id="subtitleImg" src="./Images/jeu6_FR.png" alt="Description" /></div>
       </div>
       <div class="toolbar">
-        
-        
+
       </div>
     </div>
 
@@ -567,7 +538,6 @@
       Le personnage du jour est déterminé à partir de la date du jour (fuseau Europe/Paris) et reste identique pour tous les joueurs ce jour-là.
     </p>
   </div>
-
 
   <div id="winPopup" class="win-popup" hidden>
     <img id="winPopupImg" src="" alt="Bravo" />
@@ -1054,9 +1024,6 @@
       }).join("");
     }
 
-    
-
-
     async function checkAccessForCurrentGame() {
       if (state.accessChecked) return true;
       if (!window.GameSessionManager) return true;
@@ -1133,8 +1100,6 @@
       winPopupEl.addEventListener("click", hideWinPopup);
     }
 
-    
-    
     function updateLeaderboardLabel() {
       const btn = document.getElementById("leaderboardBtn");
       if (!btn) return;
@@ -1163,7 +1128,6 @@
       });
     }
 
-    
     function updateLoginLabel() {
       const btn = document.getElementById("loginBtn");
       if (!btn) return;
@@ -1179,7 +1143,6 @@
       });
     }
 
-    
     function updateLoginLabel() {
       const btn = document.getElementById("loginBtn");
       if (!btn) return;
@@ -1283,6 +1246,8 @@
       }
 
       state.guesses.unshift(found);
+      saveState();
+      renderTexts();
 
       const dailyCharacter = getDailyCharacter(getParisDayKey());
       const nameKey = state.lang === "fr" ? "Personnage_FR" : "Personnage_EN";
@@ -1403,8 +1368,6 @@
     });
 </script>
 
-
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const translations = {
@@ -1414,7 +1377,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.DOP.updateTopbarLabels(translations);
 });
 </script>
-
 
 <script>
 (function () {
