@@ -18,6 +18,50 @@ p, li { color:rgba(248,250,252,.88); line-height:1.7; }
 ul { padding-left:20px; }
 a { color:#93c5fd; }
 .small { color:rgba(248,250,252,.72); }
+
+/* MOBILE OPTIMIZATION */
+@media (max-width: 768px) {
+
+  .topbar {
+    flex-direction: column !important;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .topbar-left, .topbar-right {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .card, .container, .box {
+    width: 90% !important;
+    margin: 10px auto !important;
+  }
+
+  input, button {
+    width: 100% !important;
+    font-size: 16px !important;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  h1, h2 {
+    text-align: center;
+  }
+
+  .footer {
+    font-size: 12px;
+    text-align: center;
+    padding: 10px;
+  }
+}
+
 </style>
 </head>
 <body>

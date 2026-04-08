@@ -21,7 +21,51 @@
     tbody tr + tr td { border-top:1px solid rgba(255,255,255,.08); }
     .pagination { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:20px; border-top:1px solid rgba(255,255,255,.08); flex-wrap:wrap; }
     .pagination-actions { display:flex; gap:12px; }
-  </style>
+  
+/* MOBILE OPTIMIZATION */
+@media (max-width: 768px) {
+
+  .topbar {
+    flex-direction: column !important;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .topbar-left, .topbar-right {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .card, .container, .box {
+    width: 90% !important;
+    margin: 10px auto !important;
+  }
+
+  input, button {
+    width: 100% !important;
+    font-size: 16px !important;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  h1, h2 {
+    text-align: center;
+  }
+
+  .footer {
+    font-size: 12px;
+    text-align: center;
+    padding: 10px;
+  }
+}
+
+</style>
 </head>
 <body>
   <div class="topbar">
