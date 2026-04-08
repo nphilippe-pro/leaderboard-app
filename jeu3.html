@@ -1464,12 +1464,13 @@ document.addEventListener('DOMContentLoaded', () => {
         clone.addEventListener('click', () => {
           const next = lang === 'fr' ? 'en' : 'fr';
           try {
-            if (typeof saveState === 'function') {
-              state.lang = next;
-              saveState();
+            if (typeof window.saveState === 'function' && typeof window.state !== 'undefined') {
+              window.state.lang = next;
+              window.saveState();
             }
           } catch (e) {}
           this.setLang(next);
+          localStorage.setItem('op_guess_lang', next);
           const params = new URLSearchParams(window.location.search);
           params.set('lang', next);
           window.location.search = params.toString();
