@@ -94,43 +94,16 @@
       transform: translateY(-4px);
       box-shadow:0 8px 20px rgba(0,0,0,.4);
     }
-  
-/* MOBILE OPTIMIZATION */
-@media (max-width: 768px) {
-  .topbar-inner {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .topbar-actions {
-    width: 100%;
-    justify-content: center;
-    margin-left: 0 !important;
-  }
-  .container, .card, .panel, .controls, .stat-card {
-    width: min(100% - 20px, 1100px) !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-  }
-  input, button {
-    font-size: 16px !important;
-  }
-  table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-}
-
-</style>
+  </style>
 </head>
 <body>
 
   <div class="topbar">
     <div class="topbar-inner">
       <button class="ghost" id="homeBtn">Accueil</button>
-
+      
       <div style="margin-left:auto; display:flex; gap:12px; align-items:center;">
-
+        
         <button class="ghost" id="langToggle" aria-label="Changer la langue">FR</button>
       </div>
     </div>
@@ -152,10 +125,11 @@
         <img id="img3" src="Images/jeu7_FR.png" alt="jeu3">
         <img id="img4" src="Images/jeu8_FR.png" alt="jeu4">
       </div>
-
+      
     </div>
   </div>
 
+  
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const translations = {
@@ -181,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+
 
 <script>
 (function () {
