@@ -4,11 +4,12 @@
     return /jeu[1-8]\.html$/i.test(window.location.pathname);
   }
 
-  function applyLanguageWithoutReload(next) {
-    if (typeof window.state === 'undefined') return false;
-    if (typeof window.saveState !== 'function') return false;
-    if (typeof window.renderTexts !== 'function') return false;
+  function switchGameLanguageWithoutReload() {
+    if (typeof window.state === 'undefined') return;
+    if (typeof window.saveState !== 'function') return;
+    if (typeof window.renderTexts !== 'function') return;
 
+    const next = window.state.lang === 'fr' ? 'en' : 'fr';
     window.state.lang = next;
     localStorage.setItem('dop_lang', next);
     localStorage.setItem('op_guess_lang', next);
@@ -22,44 +23,44 @@
     } catch (e) {}
 
     try { window.renderTexts(); } catch (e) {}
-
-    const btn = document.getElementById('langToggle');
-    if (btn) btn.textContent = next.toUpperCase();
-
-    return true;
   }
 
-  function installCaptureHandler() {
+  function replaceToggleButton() {
     if (!isGamePage()) return;
-    if (window.__dopGameLangCaptureInstalled) return;
-    window.__dopGameLangCaptureInstalled = true;
+    const btn = document.getElementById('langToggle');
+    if (!btn) return;
+    if (btn.dataset.dopLangFixed === '1') return;
 
-    document.addEventListener('click', function (event) {
-      const btn = event.target.closest('#langToggle');
-      if (!btn) return;
-      if (!isGamePage()) return;
+    const clone = btn.cloneNode(true);
+    clone.dataset.dopLangFixed = '1';
+    clone.onclick = null;
 
+    clone.addEventListener('click', function (event) {
       event.preventDefault();
       event.stopPropagation();
-      event.stopImmediatePropagation();
-
-      const current = (window.state && window.state.lang) ? window.state.lang : (localStorage.getItem('dop_lang') || 'fr');
-      const next = current === 'fr' ? 'en' : 'fr';
-      applyLanguageWithoutReload(next);
+      if (typeof event.stopImmediatePropagation === 'function') {
+        event.stopImmediatePropagation();
+      }
+      switchGameLanguageWithoutReload();
       return false;
     }, true);
+
+    btn.replaceWith(clone);
   }
 
-  function exposeHelpers() {
-    if (!isGamePage()) return;
-    installCaptureHandler();
+  function installRobustly() {
+    replaceToggleButton();
+    setTimeout(replaceToggleButton, 50);
+    setTimeout(replaceToggleButton, 250);
+    setTimeout(replaceToggleButton, 1000);
+    setTimeout(replaceToggleButton, 2000);
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', exposeHelpers);
+    document.addEventListener('DOMContentLoaded', installRobustly);
   } else {
-    exposeHelpers();
+    installRobustly();
   }
 
-  window.DOPGameLangPreserve = { applyLanguageWithoutReload };
+  window.addEventListener('load', installRobustly);
 })();
