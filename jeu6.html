@@ -913,7 +913,6 @@
       localStorage.setItem(getStorageKey(), JSON.stringify(payload));
       localStorage.setItem("op_guess_lang", state.lang);
       localStorage.setItem("dop_lang", state.lang);
-      localStorage.setItem("dop_lang", state.lang);
     }
 
     function loadState() {
@@ -1351,8 +1350,8 @@
 
     els.langToggle.addEventListener("click", () => {
       state.lang = state.lang === "fr" ? "en" : "fr";
+      saveState();
       localStorage.setItem("op_guess_lang", state.lang);
-      localStorage.setItem("dop_lang", state.lang);
       localStorage.setItem("dop_lang", state.lang);
       const params = new URLSearchParams(window.location.search);
       params.set("lang", state.lang);
